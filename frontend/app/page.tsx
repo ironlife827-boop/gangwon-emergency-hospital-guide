@@ -21,9 +21,31 @@ const questions = [
   },
 ];
 
+const hospitals = [
+  {
+    name: "강원대학교병원",
+    eta: "14분",
+    bed: "응급 병상 3개",
+    score: "92점",
+  },
+  {
+    name: "한림대학교춘천성심병원",
+    eta: "18분",
+    bed: "응급 병상 2개",
+    score: "87점",
+  },
+  {
+    name: "강릉아산병원",
+    eta: "31분",
+    bed: "응급 병상 5개",
+    score: "81점",
+  },
+];
+
 export default function Home() {
   const [symptom, setSymptom] = useState("");
   const [started, setStarted] = useState(false);
+  const [showResult, setShowResult] = useState(false);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [customAnswers, setCustomAnswers] = useState<Record<number, string>>({});
 
@@ -60,7 +82,13 @@ export default function Home() {
 
             <textarea
               value={symptom}
-              onChange={(e) => setSymptom(e.target.value)}
+              onChange={(e) => {
+                setSymptom(e.target.value);
+                setStarted(false);
+                setShowResult(false);
+                setAnswers({});
+                setCustomAnswers({});
+              }}
               className="min-h-32 w-full rounded-2xl border border-slate-700 bg-slate-950 p-4 text-sm outline-none placeholder:text-slate-500 focus:border-cyan-400"
               placeholder="예: 갑자기 가슴이 답답하고 숨쉬기가 어려워요."
             />
@@ -137,9 +165,64 @@ export default function Home() {
                 ))}
               </div>
 
-              <button className="mt-8 w-full rounded-2xl bg-white px-6 py-4 font-bold text-slate-950 transition hover:bg-slate-200">
+              <button
+                onClick={() => setShowResult(true)}
+                className="mt-8 w-full rounded-2xl bg-white px-6 py-4 font-bold text-slate-950 transition hover:bg-slate-200"
+              >
                 응급도 분석 및 병원 추천
               </button>
+
+              {showResult && (
+                <section className="mt-8 space-y-6 border-t border-slate-800 pt-8">
+                  <div className="rounded-2xl border border-red-500/40 bg-red-500/10 p-5">
+                    <p className="text-sm font-semibold text-red-300">
+                      응급도 판단 결과
+                    </p>
+                    <h3 className="mt-2 text-3xl font-bold text-red-200">
+                      응급도 2단계 — 긴급
+                    </h3>
+                    <p className="mt-3 text-sm text-slate-300">
+                      입력된 증상과 문진 답변을 기준으로 빠른 의료기관 방문이
+                      권장됩니다.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="mb-4 text-2xl font-bold">추천 병원</h3>
+
+                    <div className="grid gap-4 md:grid-cols-3">
+                      {hospitals.map((hospital, index) => (
+                        <article
+                          key={hospital.name}
+                          className="rounded-2xl border border-slate-800 bg-slate-950 p-5"
+                        >
+                          <p className="mb-2 text-sm font-semibold text-cyan-300">
+                            추천 {index + 1}순위
+                          </p>
+
+                          <h4 className="text-lg font-bold">
+                            {hospital.name}
+                          </h4>
+
+                          <div className="mt-4 space-y-2 text-sm text-slate-300">
+                            <p>예상 이동시간: {hospital.eta}</p>
+                            <p>병상 정보: {hospital.bed}</p>
+                            <p>추천 점수: {hospital.score}</p>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
+                    <h3 className="mb-4 text-2xl font-bold">지도 시각화</h3>
+
+                    <div className="flex h-72 items-center justify-center rounded-2xl border border-dashed border-slate-700 bg-slate-900 text-sm text-slate-500">
+                      지도 API 연동 예정 영역
+                    </div>
+                  </div>
+                </section>
+              )}
             </div>
           )}
         </section>
