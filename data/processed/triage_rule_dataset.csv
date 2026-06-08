@@ -1,0 +1,60 @@
+﻿symptom_group,question_id,question,answer_option,risk_score,suspected_disease,required_resource_code
+neuro,Q0001,급성의식장애 증상이 있습니까?,예,5.0,뇌졸중,ER_NEURO
+neuro,Q0002,급성신경학적 이상 증상이 있습니까?,예,4.0,뇌졸중,ER_NEURO
+neuro,Q0003,구토·의식장애 등의 증상이 있는 두부손상 증상이 있습니까?,예,3.0,외상성 뇌손상,ER_NEURO
+cardio,Q0004,심폐소생술이 필요한 증상 증상이 있습니까?,예,5.0,심정지,ER_CARDIO
+cardio,Q0005,급성호흡곤란 증상이 있습니까?,예,5.0,호흡부전,ER_RESP
+cardio,Q0006,심장질환으로 인한 급성 흉통 증상이 있습니까?,예,4.0,급성 심근경색,ER_CARDIO
+cardio,Q0007,심계항진 증상이 있습니까?,예,4.0,부정맥,ER_CARDIO
+cardio,Q0008,박동이상 증상이 있습니까?,예,4.0,부정맥,ER_CARDIO
+cardio,Q0009,쇼크 증상이 있습니까?,예,5.0,쇼크,ER_CRITICAL
+toxic,Q0010,심한 탈수 증상이 있습니까?,예,3.0,중증 탈수,ER_INTERNAL
+toxic,Q0011,약물 과다복용 증상이 있습니까?,예,4.0,약물중독,ER_TOX
+toxic,Q0012,알코올 중독 증상이 있습니까?,예,4.0,알코올중독,ER_TOX
+toxic,Q0013,기타 물질 중독 증상이 있습니까?,예,4.0,중독,ER_TOX
+toxic,Q0014,급성대사장애 증상이 있습니까?,예,3.0,대사장애,ER_INTERNAL
+toxic,Q0015,간부전 증상이 있습니까?,예,3.0,간부전,ER_INTERNAL
+toxic,Q0016,신부전 증상이 있습니까?,예,3.0,신부전,ER_INTERNAL
+toxic,Q0017,당뇨병성 대사장애 증상이 있습니까?,예,3.0,당뇨병성 응급질환,ER_INTERNAL
+surgery,Q0018,급성복막염 증상이 있습니까?,예,4.0,복막염,ER_SURGERY
+surgery,Q0019,장폐색증 증상이 있습니까?,예,4.0,장폐색,ER_SURGERY
+surgery,Q0020,급성췌장염 증상이 있습니까?,예,4.0,급성췌장염,ER_SURGERY
+surgery,Q0021,개복술을 요하는 급성복증 증상이 있습니까?,예,4.0,급성복증,ER_SURGERY
+surgery,Q0022,광범위 화상 증상이 있습니까?,예,3.0,중증화상,ER_BURN
+surgery,Q0023,관통상 증상이 있습니까?,예,4.0,관통손상,ER_TRAUMA
+surgery,Q0024,개방성 골절 증상이 있습니까?,예,4.0,개방성골절,ER_TRAUMA
+surgery,Q0025,다발성 골절 증상이 있습니까?,예,4.0,다발성골절,ER_TRAUMA
+surgery,Q0026,대퇴부 골절 증상이 있습니까?,예,4.0,대퇴골골절,ER_TRAUMA
+surgery,Q0027,척추 골절 증상이 있습니까?,예,4.0,척추골절,ER_TRAUMA
+surgery,Q0028,사지 절단 위험 혈관손상 증상이 있습니까?,예,5.0,혈관손상,ER_TRAUMA
+surgery,Q0029,응급수술 필요 중상 증상이 있습니까?,예,4.0,중증외상,ER_TRAUMA
+surgery,Q0030,다발성 외상 증상이 있습니까?,예,4.0,다발성외상,ER_TRAUMA
+bleeding,Q0031,계속되는 각혈 증상이 있습니까?,예,4.0,객혈,ER_HEMORRHAGE
+bleeding,Q0032,지혈이 안되는 출혈 증상이 있습니까?,예,5.0,대량출혈,ER_HEMORRHAGE
+bleeding,Q0033,급성 위장관 출혈 증상이 있습니까?,예,5.0,위장관출혈,ER_HEMORRHAGE
+eye,Q0034,화학물질에 의한 눈 손상 증상이 있습니까?,예,4.0,화학성 안손상,ER_OPHTHAL
+eye,Q0035,급성 시력손실 증상이 있습니까?,예,5.0,급성 시력상실,ER_OPHTHAL
+allergy,Q0036,얼굴부종을 동반한 알레르기 반응 증상이 있습니까?,예,4.0,아나필락시스,ER_ALLERGY
+pediatric,Q0037,소아경련성 장애 증상이 있습니까?,예,4.0,열성경련,ER_PED
+psychiatric,Q0038,자신 또는 타인을 해할 우려가 있는 정신장애 증상이 있습니까?,예,4.0,정신과적 응급상황,ER_PSY
+neuro,Q0039,의식장애 증상이 있습니까?,예,3.0,신경계 질환,ER_NEURO
+neuro,Q0040,현훈 증상이 있습니까?,예,2.0,어지럼증,ER_NEURO
+cardio,Q0041,호흡곤란 증상이 있습니까?,예,3.0,급성 호흡기 질환,ER_RESP
+cardio,Q0042,과호흡 증상이 있습니까?,예,3.0,과호흡증후군,ER_RESP
+trauma,Q0043,화상 증상이 있습니까?,예,2.0,화상,ER_BURN
+abdominal,Q0044,배의 전반적인 이상증상 증상이 있습니까?,예,3.0,복부질환,ER_SURGERY
+abdominal,Q0045,급성복증 증상이 있습니까?,예,3.0,급성복증,ER_SURGERY
+trauma,Q0046,골절 증상이 있습니까?,예,3.0,골절,ER_TRAUMA
+trauma,Q0047,외상 증상이 있습니까?,예,3.0,외상,ER_TRAUMA
+trauma,Q0048,탈골 증상이 있습니까?,예,3.0,탈구,ER_TRAUMA
+surgery,Q0049,응급수술이 필요한 증상 증상이 있습니까?,예,3.0,외과적 응급질환,ER_SURGERY
+urology,Q0050,배뇨장애 증상이 있습니까?,예,2.0,비뇨기 질환,ER_UROLOGY
+bleeding,Q0051,혈관손상 증상이 있습니까?,예,3.0,혈관손상,ER_TRAUMA
+pediatric,Q0052,소아 경련 증상이 있습니까?,예,3.0,열성경련,ER_PED
+pediatric,Q0053,38도 이상 소아 고열 증상이 있습니까?,예,2.0,소아 고열,ER_PED
+obgy,Q0054,분만 관련 응급증상 증상이 있습니까?,예,2.0,산과적 응급상황,ER_OBGY
+obgy,Q0055,성폭력 관련 산부인과 처치 필요 증상이 있습니까?,예,2.0,산부인과적 응급상황,ER_OBGY
+foreign_body,Q0056,귀 이물 증상이 있습니까?,예,2.0,귀 이물,ER_ENT
+foreign_body,Q0057,눈 이물 증상이 있습니까?,예,2.0,눈 이물,ER_OPHTHAL
+foreign_body,Q0058,코 이물 증상이 있습니까?,예,2.0,코 이물,ER_ENT
+foreign_body,Q0059,항문 이물 증상이 있습니까?,예,2.0,항문 이물,ER_SURGERY
