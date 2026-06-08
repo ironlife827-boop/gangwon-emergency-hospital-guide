@@ -153,19 +153,9 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
     similar_cases = _build_similar_cases(top_rows)
     max_similarity = float(top_rows["similarity"].max()) if len(top_rows) else 0.0
 
-    keyword_override = _find_keyword_override(symptom)
-
-    if keyword_override is not None:
-        return {
-            "symptom_group": keyword_override["symptom_group"],
-            "department": keyword_override["department"],
-            "suspected_disease": keyword_override["suspected_disease"],
-            "naver_severity_level": int(keyword_override["naver_severity_level"]),
-            "max_similarity": round(max_similarity, 4),
-            "similar_cases": similar_cases,
-            "matched_by": "keyword_rule",
-        }
-
+    # 최종 정책:
+    # 질환/진료과/증상군 추론은 네이버 지식인 사례로 학습한 모델을 우선 사용한다.
+    # 응급 키워드 룰은 모델 파일이 없거나 예측 실패 시에만 안전장치로 사용한다.
     trained_prediction = _predict_with_trained_classifier(symptom)
 
     if trained_prediction is not None:
@@ -180,6 +170,19 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
             "max_similarity": round(max_similarity, 4),
             "similar_cases": similar_cases,
             "matched_by": "trained_classifier",
+        }
+
+    keyword_override = _find_keyword_override(symptom)
+
+    if keyword_override is not None:
+        return {
+            "symptom_group": keyword_override["symptom_group"],
+            "department": keyword_override["department"],
+            "suspected_disease": keyword_override["suspected_disease"],
+            "naver_severity_level": int(keyword_override["naver_severity_level"]),
+            "max_similarity": round(max_similarity, 4),
+            "similar_cases": similar_cases,
+            "matched_by": "keyword_rule",
         }
 
     symptom_group = _majority_value(top_rows, "symptom_group", "etc")
