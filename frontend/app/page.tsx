@@ -75,11 +75,61 @@ type TriageResult = {
 
 const API_BASE_URL = "https://gangwon-emergency-api.onrender.com";
 
+const symptomGroupLabel: Record<string, string> = {
+  cardio: "심혈관계",
+  neuro: "신경계",
+  respiratory: "호흡기계",
+  abdominal: "복부/소화기계",
+  trauma: "외상",
+  toxic: "중독",
+  poisoning: "중독",
+  allergy: "알레르기",
+  bleeding: "출혈",
+  eye: "안과",
+  foreign_body: "이물질",
+  pediatric: "소아",
+  obgy: "산부인과",
+  psychiatric: "정신건강",
+  urology: "비뇨기계",
+  etc_emerg: "기타 응급",
+  unknown: "기타",
+};
+
+const methodLabel = (method: string) => {
+  if (method === "keyword_rule") return "응급 키워드 우선 룰";
+  if (method === "trained_classifier") return "자체 학습 증상 분류 모델";
+  return "유사 사례 검색";
+};
+
+const groupLabel = (group?: string | null) => {
+  if (!group) return "-";
+  return symptomGroupLabel[group] ?? group;
+};
+
+const shortDepartment = (value?: string | null) => {
+  if (!value) return "-";
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 3)
+    .join(", ");
+};
+
+const severityText = (level: number) => {
+  if (level >= 5) return "매우 위험";
+  if (level === 4) return "위험";
+  if (level === 3) return "주의";
+  if (level === 2) return "낮음";
+  return "경미";
+};
+
 export default function Home() {
   const [symptom, setSymptom] = useState("");
   const [userLat, setUserLat] = useState("");
   const [userLon, setUserLon] = useState("");
-  const [questionResponse, setQuestionResponse] = useState<QuestionResponse | null>(null);
+  const [questionResponse, setQuestionResponse] =
+    useState<QuestionResponse | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [result, setResult] = useState<TriageResult | null>(null);
 
@@ -114,7 +164,9 @@ export default function Home() {
         setLocationLoading(false);
       },
       () => {
-        setErrorMessage("위치 정보를 가져오지 못했습니다. 위도와 경도를 직접 입력해주세요.");
+        setErrorMessage(
+          "위치 정보를 가져오지 못했습니다. 위도와 경도를 직접 입력해주세요."
+        );
         setLocationLoading(false);
       },
       { enableHighAccuracy: true, timeout: 8000 }
@@ -146,7 +198,9 @@ export default function Home() {
       const data = await response.json();
       setQuestionResponse(data);
     } catch {
-      setErrorMessage("백엔드 서버와 연결되지 않았습니다. Render 배포 상태를 확인해주세요.");
+      setErrorMessage(
+        "백엔드 서버와 연결되지 않았습니다. Render 배포 상태를 확인해주세요."
+      );
     } finally {
       setQuestionLoading(false);
     }
@@ -205,12 +259,6 @@ export default function Home() {
     }
   };
 
-  const methodLabel = (method: string) => {
-    if (method === "keyword_rule") return "응급 키워드 우선 룰";
-    if (method === "trained_classifier") return "자체 학습 증상 분류 모델";
-    return "유사 사례 검색";
-  };
-
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <section className="mx-auto max-w-6xl px-6 py-10">
@@ -226,8 +274,8 @@ export default function Home() {
           </h1>
 
           <p className="mx-auto mt-5 max-w-3xl text-slate-300 md:text-lg">
-            자체 수집한 증상 사례 데이터, 증상 분류 모델, 문진 규칙, 응급도 모델,
-            병원·ETA 데이터를 결합해 병원을 추천합니다.
+            자체 수집한 증상 사례 데이터, 증상 분류 모델, 문진 규칙, 응급도
+            모델, 병원·ETA 데이터를 결합해 병원을 추천합니다.
           </p>
         </header>
 
@@ -302,7 +350,7 @@ export default function Home() {
                 <div className="rounded-2xl bg-slate-950 p-4">
                   <p className="text-xs text-slate-500">증상군</p>
                   <p className="mt-1 font-bold text-cyan-300">
-                    {questionResponse.symptom_group}
+                    {groupLabel(questionResponse.symptom_group)}
                   </p>
                 </div>
 
@@ -354,17 +402,32 @@ export default function Home() {
 
               <div className="mb-8 rounded-2xl border border-slate-800 bg-slate-950 p-5">
                 <h2 className="text-xl font-bold">유사 실제 사례</h2>
+
                 <div className="mt-4 space-y-3">
                   {questionResponse.similar_cases.slice(0, 3).map((item) => (
                     <div
                       key={item.case_id}
                       className="rounded-xl border border-slate-800 bg-slate-900 p-4 text-sm text-slate-300"
                     >
-                      <p>{item.cleaned_text}</p>
-                      <p className="mt-2 text-xs text-slate-500">
-                        {item.department} · {item.suspected_disease} · 유사도{" "}
-                        {(item.similarity * 100).toFixed(1)}%
+                      <p className="font-medium text-slate-100">
+                        {item.cleaned_text}
                       </p>
+
+                      <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                        <span className="rounded-full bg-cyan-400/10 px-3 py-1 text-cyan-300">
+                          {item.department}
+                        </span>
+                        <span className="rounded-full bg-cyan-400/10 px-3 py-1 text-cyan-300">
+                          {item.suspected_disease}
+                        </span>
+                        <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
+                          유사도 {(item.similarity * 100).toFixed(1)}%
+                        </span>
+                        <span className="rounded-full bg-red-400/10 px-3 py-1 text-red-300">
+                          사례 위험도 {item.severity_level} ·{" "}
+                          {severityText(item.severity_level)}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -373,7 +436,8 @@ export default function Home() {
               <div className="mb-6">
                 <h2 className="text-2xl font-bold">추가 문진</h2>
                 <p className="mt-2 text-sm text-slate-400">
-                  증상군에 해당하는 문진 규칙 중 위험 점수가 높은 핵심 질문을 제시합니다.
+                  증상군에 해당하는 문진 규칙 중 위험 점수가 높은 핵심 질문을
+                  제시합니다.
                 </p>
               </div>
 
@@ -411,7 +475,9 @@ export default function Home() {
                 disabled={!isAllAnswered || analyzeLoading}
                 className="mt-8 w-full rounded-2xl bg-white px-6 py-4 font-bold text-slate-950 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
               >
-                {analyzeLoading ? "응급도 및 병원 분석 중..." : "응급도 분석 및 병원 추천"}
+                {analyzeLoading
+                  ? "응급도 및 병원 분석 중..."
+                  : "응급도 분석 및 병원 추천"}
               </button>
 
               {result && (
@@ -422,7 +488,8 @@ export default function Home() {
                     </p>
 
                     <h3 className="mt-2 text-3xl font-bold text-red-200">
-                      응급도 {result.severity_level}단계 — {result.severity_label}
+                      응급도 {result.severity_level}단계 —{" "}
+                      {result.severity_label}
                     </h3>
 
                     <p className="mt-3 text-sm text-slate-300">
@@ -440,7 +507,7 @@ export default function Home() {
                         진료과: {result.department}
                       </div>
                       <div className="rounded-xl bg-slate-950/70 p-3">
-                        증상군: {result.symptom_group}
+                        증상군: {groupLabel(result.symptom_group)}
                       </div>
                     </div>
                   </div>
@@ -470,7 +537,7 @@ export default function Home() {
                           </h4>
 
                           <div className="mt-4 space-y-2 text-sm text-slate-300">
-                            <p>진료과: {hospital.department}</p>
+                            <p>주요 진료과: {shortDepartment(hospital.department)}</p>
                             <p>예상 이동시간: {hospital.eta_min}분</p>
                             <p>거리: {hospital.distance_km}km</p>
                             <p>응급 병상: {hospital.available_beds}개</p>
