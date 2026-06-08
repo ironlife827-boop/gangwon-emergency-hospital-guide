@@ -33,6 +33,10 @@ class TriageQuestionResponse(BaseModel):
     questions: list[TriageQuestion]
     similar_cases: list[SimilarCase] = []
 
+    llm_used: bool = False
+    llm_keywords: list[str] = []
+    llm_missing_fields: list[str] = []
+
 
 class TriageAnswer(BaseModel):
     question_id: str

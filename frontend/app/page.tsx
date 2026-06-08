@@ -48,6 +48,9 @@ type QuestionResponse = {
   need_followup: boolean;
   questions: TriageQuestion[];
   similar_cases: SimilarCase[];
+  llm_used: boolean;
+  llm_keywords: string[];
+  llm_missing_fields: string[];
 };
 
 type TriageResult = {
@@ -107,18 +110,9 @@ export default function Home() {
         setErrorMessage("위치 정보를 가져오지 못했습니다. 위도와 경도를 직접 입력해주세요.");
         setLocationLoading(false);
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 8000,
-      }
+      { enableHighAccuracy: true, timeout: 8000 }
     );
   };
-
-  const requestBodyWithLocation = () => ({
-    symptom,
-    user_lat: numericLat,
-    user_lon: numericLon,
-  });
 
   const handleStartConsultation = async () => {
     if (!symptom.trim()) return;
@@ -132,10 +126,12 @@ export default function Home() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/triage/questions`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBodyWithLocation()),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          symptom,
+          user_lat: numericLat,
+          user_lon: numericLon,
+        }),
       });
 
       if (!response.ok) {
@@ -152,10 +148,7 @@ export default function Home() {
   };
 
   const handleSelect = (questionId: string, value: string) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: value,
-    }));
+    setAnswers((prev) => ({ ...prev, [questionId]: value }));
   };
 
   const buildPayloadAnswers = (): TriageAnswer[] => {
@@ -187,9 +180,7 @@ export default function Home() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/triage/analyze`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           symptom,
           answers: buildPayloadAnswers(),
@@ -226,7 +217,7 @@ export default function Home() {
           </h1>
 
           <p className="mx-auto mt-5 max-w-3xl text-slate-300 md:text-lg">
-            사용자의 자연어 증상을 실제 사례 데이터, 문진 규칙, 응급도 모델,
+            LLM 보조 구조화, 실제 사례 유사도, 문진 규칙, 응급도 모델,
             병원·ETA 데이터를 결합해 분석합니다.
           </p>
         </header>
@@ -322,6 +313,37 @@ export default function Home() {
               </div>
 
               <div className="mb-8 rounded-2xl border border-slate-800 bg-slate-950 p-5">
+                <h2 className="text-xl font-bold">LLM 구조화 보조</h2>
+
+                {questionResponse.llm_used ? (
+                  <div className="mt-4 grid gap-3 md:grid-cols-2">
+                    <div className="rounded-xl bg-slate-900 p-4 text-sm">
+                      <p className="mb-2 text-slate-500">추출 키워드</p>
+                      <p className="text-cyan-300">
+                        {questionResponse.llm_keywords.length > 0
+                          ? questionResponse.llm_keywords.join(", ")
+                          : "없음"}
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl bg-slate-900 p-4 text-sm">
+                      <p className="mb-2 text-slate-500">부족 정보</p>
+                      <p className="text-cyan-300">
+                        {questionResponse.llm_missing_fields.length > 0
+                          ? questionResponse.llm_missing_fields.join(", ")
+                          : "없음"}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="mt-3 text-sm text-slate-400">
+                    현재는 데이터 기반 분석 모드입니다. Render 환경변수에 OPENAI_API_KEY를
+                    등록하면 LLM 구조화 보조가 활성화됩니다.
+                  </p>
+                )}
+              </div>
+
+              <div className="mb-8 rounded-2xl border border-slate-800 bg-slate-950 p-5">
                 <h2 className="text-xl font-bold">유사 실제 사례</h2>
                 <div className="mt-4 space-y-3">
                   {questionResponse.similar_cases.slice(0, 3).map((item) => (
@@ -342,7 +364,7 @@ export default function Home() {
               <div className="mb-6">
                 <h2 className="text-2xl font-bold">추가 문진</h2>
                 <p className="mt-2 text-sm text-slate-400">
-                  분석에 필요한 핵심 질문만 선택적으로 제시합니다.
+                  LLM 보조 질문과 문진 데이터셋 기반 핵심 질문을 함께 제시합니다.
                 </p>
               </div>
 
@@ -450,14 +472,6 @@ export default function Home() {
                           )}
                         </article>
                       ))}
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
-                    <h3 className="mb-4 text-2xl font-bold">지도 시각화</h3>
-
-                    <div className="flex h-72 items-center justify-center rounded-2xl border border-dashed border-slate-700 bg-slate-900 text-sm text-slate-500">
-                      지도 API 연동 예정 영역
                     </div>
                   </div>
                 </section>
