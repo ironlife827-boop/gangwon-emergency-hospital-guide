@@ -73,6 +73,7 @@ class RecommendedHospital(BaseModel):
 
 
 class TriageAnalyzeResponse(BaseModel):
+    final_symptom_summary: str
     severity_level: int
     severity_label: str
     risk_score: int

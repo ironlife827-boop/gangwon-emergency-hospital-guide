@@ -154,27 +154,111 @@ def _primary_case_disease(symptom_analysis: dict) -> str:
             return first_case.suspected_disease
     return symptom_analysis["suspected_disease"]
 
+def _build_final_symptom_summary(payload: TriageAnalyzeRequest) -> str:
+    """
+    사용자 최초 입력과 추가 문진 답변을 합쳐 최종 분석용 증상 문장으로 정리한다.
+    이 문장은 최종 결과 화면에 표시되고, 분석 모델 입력에도 활용된다.
+    """
+    lines = [f"초기 증상: {payload.symptom.strip()}"]
+
+    if payload.answers:
+        lines.append("추가 문진 답변:")
+        for answer in payload.answers:
+            value = str(answer.answer).strip()
+            if answer.custom_answer:
+                value = f"{value} ({answer.custom_answer.strip()})"
+            lines.append(f"- {answer.question}: {value}")
+
+    return "\n".join(lines)
+
+
+def _build_analysis_text(payload: TriageAnalyzeRequest) -> str:
+    """
+    분류 모델에는 '예/잘 모르겠음' 답변을 중심으로 보강한다.
+    '아니오' 답변의 질문 문구를 그대로 넣으면 오히려 해당 증상 키워드가 포함되어
+    분류 모델을 혼동시킬 수 있으므로 모델 입력에서는 제외한다.
+    """
+    parts = [payload.symptom.strip()]
+
+    for answer in payload.answers:
+        normalized_answer = str(answer.answer).strip().lower()
+
+        if answer.answer in YES_VALUES or normalized_answer in YES_VALUES:
+            parts.append(str(answer.question))
+            if answer.custom_answer:
+                parts.append(str(answer.custom_answer))
+
+        elif answer.answer in UNKNOWN_VALUES or normalized_answer in UNKNOWN_VALUES:
+            parts.append(f"불확실: {answer.question}")
+
+    return " ".join(part for part in parts if part)
+
+
 def analyze_data_driven_triage(payload: TriageAnalyzeRequest) -> TriageAnalyzeResponse:
-    symptom_analysis = analyze_symptom_text(payload.symptom)
+    final_symptom_summary = _build_final_symptom_summary(payload)
+    analysis_text = _build_analysis_text(payload)
+
+    # 최종 분석은 최초 입력만이 아니라 문진 답변까지 반영한 문장을 기준으로 수행한다.
+    symptom_analysis = analyze_symptom_text(analysis_text)
+
     question_score_map = _build_question_score_map()
     total_risk_score = 0.0
     matched_resource_codes: list[str] = []
+
     for answer in payload.answers:
         rule = question_score_map.get(answer.question_id)
         if not rule:
             continue
+
         added_score = _answer_to_score(answer.answer, float(rule.get("risk_score", 0)))
         total_risk_score += added_score
+
         if added_score > 0:
             matched_resource_codes.append(str(rule.get("required_resource_code", "")))
+
     naver_level = int(symptom_analysis["naver_severity_level"])
     combined_risk_score = max(total_risk_score, max(0, naver_level - 1))
     severity_level = _predict_severity_from_score(combined_risk_score)
-    required_resource_code = matched_resource_codes[0] if matched_resource_codes else _resource_code_from_group(symptom_analysis["symptom_group"])
-    hospitals = recommend_hospitals(department=symptom_analysis["department"], severity_level=severity_level, user_lat=payload.user_lat, user_lon=payload.user_lon, limit=3)
+
+    required_resource_code = (
+        matched_resource_codes[0]
+        if matched_resource_codes
+        else _resource_code_from_group(symptom_analysis["symptom_group"])
+    )
+
+    hospitals = recommend_hospitals(
+        department=symptom_analysis["department"],
+        severity_level=severity_level,
+        user_lat=payload.user_lat,
+        user_lon=payload.user_lon,
+        limit=3,
+    )
+
     evidence = _build_evidence(symptom_analysis)
-    summary = f"입력 증상은 '{symptom_analysis['symptom_group']}' 증상군과 가장 유사하며, 추천 진료과는 {symptom_analysis['department']}입니다. 증상 분류 모델/응급 키워드 룰/유사 사례 검색, 동적 문진 위험 점수, 응급도 모델을 결합해 응급도 {severity_level}단계로 산출했습니다."
-    return TriageAnalyzeResponse(severity_level=severity_level, severity_label=_severity_label(severity_level), risk_score=int(round(combined_risk_score)), required_resource_code=required_resource_code, symptom_group=symptom_analysis["symptom_group"], department=symptom_analysis["department"], suspected_disease=_primary_case_disease(symptom_analysis), summary=summary, evidence=evidence, similar_cases=symptom_analysis["similar_cases"], hospitals=hospitals)
+
+    summary = (
+        "사용자 최초 입력과 추가 문진 답변을 합쳐 최종 증상 문장을 구성한 뒤, "
+        f"이를 기준으로 '{symptom_analysis['symptom_group']}' 증상군, "
+        f"{symptom_analysis['department']} 진료과, "
+        f"{_primary_case_disease(symptom_analysis)} 가능성을 산출했습니다. "
+        f"동적 문진 위험 점수와 응급도 모델을 결합해 응급도 {severity_level}단계로 판단했습니다."
+    )
+
+    return TriageAnalyzeResponse(
+        final_symptom_summary=final_symptom_summary,
+        severity_level=severity_level,
+        severity_label=_severity_label(severity_level),
+        risk_score=int(round(combined_risk_score)),
+        required_resource_code=required_resource_code,
+        symptom_group=symptom_analysis["symptom_group"],
+        department=symptom_analysis["department"],
+        suspected_disease=_primary_case_disease(symptom_analysis),
+        summary=summary,
+        evidence=evidence,
+        similar_cases=symptom_analysis["similar_cases"],
+        hospitals=hospitals,
+    )
+
 
 def _resource_code_from_group(symptom_group: str) -> str:
     mapping = {"cardio": "ER_CARDIO", "neuro": "ER_NEURO", "respiratory": "ER_RESP", "abdominal": "ER_GENERAL", "trauma": "ER_TRAUMA", "orthopedic": "ER_TRAUMA", "bleeding": "ER_TRAUMA", "pediatric": "ER_PED", "allergy": "ER_GENERAL", "infection": "ER_GENERAL", "toxic": "ER_GENERAL", "poisoning": "ER_GENERAL"}

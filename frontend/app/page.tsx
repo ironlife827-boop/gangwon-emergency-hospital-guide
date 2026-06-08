@@ -61,6 +61,7 @@ type QuestionResponse = {
 };
 
 type TriageResult = {
+  final_symptom_summary: string;
   severity_level: number;
   severity_label: string;
   risk_score: number;
@@ -408,109 +409,28 @@ export default function Home() {
 
           {questionResponse && (
             <div className="border-t border-slate-800 pt-8">
-              <div className="mb-6 grid gap-4 md:grid-cols-3">
-                <div className="rounded-2xl bg-slate-950 p-4">
-                  <p className="text-xs text-slate-500">증상군</p>
-                  <p className="mt-1 font-bold text-cyan-300">
-                    {groupLabel(questionResponse.symptom_group)}
+              {!result && (
+                <div className="mb-8 rounded-2xl border border-cyan-400/30 bg-cyan-400/10 p-5">
+                  <p className="text-sm font-semibold text-cyan-300">
+                    1단계 · 추가 정보 확인
+                  </p>
+                  <h2 className="mt-2 text-2xl font-bold text-white">
+                    입력 증상을 바탕으로 필요한 문진만 선별했습니다.
+                  </h2>
+                  <p className="mt-3 text-sm leading-6 text-slate-300">
+                    아직 최종 진단이나 응급도 판단이 완료된 상태가 아닙니다.
+                    아래 질문에 답변하면 최초 증상과 문진 답변을 합쳐
+                    최종 증상 문장을 만든 뒤, 그 내용을 기준으로 의심 질환,
+                    응급도, 유사 사례, 추천 병원을 한 번에 분석합니다.
                   </p>
                 </div>
-
-                <div className="rounded-2xl bg-slate-950 p-4">
-                  <p className="text-xs text-slate-500">추천 진료과</p>
-                  <p className="mt-1 font-bold text-cyan-300">
-                    {questionResponse.department}
-                  </p>
-                </div>
-
-                <div className="rounded-2xl bg-slate-950 p-4">
-                  <p className="text-xs text-slate-500">의심 질환</p>
-                  <p className="mt-1 font-bold text-cyan-300">
-                    {questionResponse.suspected_disease}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mb-8 rounded-2xl border border-slate-800 bg-slate-950 p-5">
-                <h2 className="text-xl font-bold">판단 근거</h2>
-
-                <div className="mt-4 grid gap-3 md:grid-cols-3">
-                  <div className="rounded-xl bg-slate-900 p-4 text-sm">
-                    <p className="mb-2 text-slate-500">분석 방식</p>
-                    <p className="font-semibold text-cyan-300">
-                      {methodLabel(questionResponse.evidence.method)}
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl bg-slate-900 p-4 text-sm">
-                    <p className="mb-2 text-slate-500">학습 모델 사용</p>
-                    <p className="font-semibold text-cyan-300">
-                      {questionResponse.evidence.model_used ? "사용" : "미사용"}
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl bg-slate-900 p-4 text-sm">
-                    <p className="mb-2 text-slate-500">최고 유사도</p>
-                    <p className="font-semibold text-cyan-300">
-                      {(questionResponse.evidence.similarity_top_score * 100).toFixed(1)}%
-                    </p>
-                  </div>
-                </div>
-
-                <p className="mt-4 text-sm text-slate-400">
-                  {questionResponse.evidence.explanation}
-                </p>
-              </div>
-
-              <div className="mb-8 rounded-2xl border border-slate-800 bg-slate-950 p-5">
-                <h2 className="text-xl font-bold">유사 실제 사례</h2>
-
-                <div className="mt-4 space-y-3">
-                  {questionResponse.similar_cases.slice(0, 3).map((item) => (
-                    <div
-                      key={item.case_id}
-                      className="rounded-xl border border-slate-800 bg-slate-900 p-4 text-sm text-slate-300"
-                    >
-                      <p className="font-medium text-slate-100">
-                        {item.cleaned_text}
-                      </p>
-
-                      <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                        <span className="rounded-full bg-cyan-400/10 px-3 py-1 text-cyan-300">
-                          {item.department}
-                        </span>
-                        <span className="rounded-full bg-cyan-400/10 px-3 py-1 text-cyan-300">
-                          {item.suspected_disease}
-                        </span>
-                        <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
-                          유사도 {(item.similarity * 100).toFixed(1)}%
-                        </span>
-                        <span className="rounded-full bg-red-400/10 px-3 py-1 text-red-300">
-                          사례 위험도 {item.severity_level} ·{" "}
-                          {severityText(item.severity_level)}
-                        </span>
-                      </div>
-                      
-                      {item.source_url && item.source_url.startsWith("http") && (
-                        <a
-                          href={item.source_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-4 inline-flex rounded-xl border border-cyan-400 px-3 py-2 text-xs font-semibold text-cyan-300 transition hover:bg-cyan-400 hover:text-slate-950"
-                        >
-                          네이버 원문 보기
-                        </a>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
+              )}
 
               <div className="mb-6">
                 <h2 className="text-2xl font-bold">추가 문진</h2>
                 <p className="mt-2 text-sm text-slate-400">
-                  증상군에 해당하는 문진 규칙 중 위험 점수가 높은 핵심 질문을
-                  제시합니다.
+                  최초 입력에서 부족한 정보를 보완하기 위한 질문입니다.
+                  답변 후 최종 분석 결과가 한 번에 표시됩니다.
                 </p>
               </div>
 
@@ -671,10 +591,113 @@ export default function Home() {
                   })()}
 
                   <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
+                    <p className="text-sm font-semibold text-cyan-300">
+                      최종 증상 정리
+                    </p>
+                    <h3 className="mt-2 text-xl font-bold">
+                      문진 답변을 반영한 최종 분석 입력
+                    </h3>
+                    <pre className="mt-4 whitespace-pre-wrap rounded-2xl border border-slate-800 bg-slate-900 p-4 text-sm leading-6 text-slate-300">
+                      {result.final_symptom_summary}
+                    </pre>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
+                      <p className="text-xs text-slate-500">최종 증상군</p>
+                      <p className="mt-2 text-xl font-bold text-cyan-300">
+                        {groupLabel(result.symptom_group)}
+                      </p>
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
+                      <p className="text-xs text-slate-500">추천 진료과</p>
+                      <p className="mt-2 text-xl font-bold text-cyan-300">
+                        {result.department}
+                      </p>
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
+                      <p className="text-xs text-slate-500">의심 질환</p>
+                      <p className="mt-2 text-xl font-bold text-cyan-300">
+                        {result.suspected_disease}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
                     <h3 className="text-xl font-bold">최종 판단 근거</h3>
-                    <p className="mt-3 text-sm text-slate-400">
+
+                    <div className="mt-4 grid gap-3 md:grid-cols-3">
+                      <div className="rounded-xl bg-slate-900 p-4 text-sm">
+                        <p className="mb-2 text-slate-500">분석 방식</p>
+                        <p className="font-semibold text-cyan-300">
+                          {methodLabel(result.evidence.method)}
+                        </p>
+                      </div>
+
+                      <div className="rounded-xl bg-slate-900 p-4 text-sm">
+                        <p className="mb-2 text-slate-500">학습 모델 사용</p>
+                        <p className="font-semibold text-cyan-300">
+                          {result.evidence.model_used ? "사용" : "미사용"}
+                        </p>
+                      </div>
+
+                      <div className="rounded-xl bg-slate-900 p-4 text-sm">
+                        <p className="mb-2 text-slate-500">최고 유사도</p>
+                        <p className="font-semibold text-cyan-300">
+                          {(result.evidence.similarity_top_score * 100).toFixed(1)}%
+                        </p>
+                      </div>
+                    </div>
+
+                    <p className="mt-4 text-sm leading-6 text-slate-400">
                       {result.evidence.explanation}
                     </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
+                    <h3 className="text-xl font-bold">유사 실제 사례</h3>
+
+                    <div className="mt-4 space-y-3">
+                      {result.similar_cases.slice(0, 3).map((item) => (
+                        <div
+                          key={item.case_id}
+                          className="rounded-xl border border-slate-800 bg-slate-900 p-4 text-sm text-slate-300"
+                        >
+                          <p className="font-medium text-slate-100">
+                            {item.cleaned_text}
+                          </p>
+
+                          <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                            <span className="rounded-full bg-cyan-400/10 px-3 py-1 text-cyan-300">
+                              {item.department}
+                            </span>
+                            <span className="rounded-full bg-cyan-400/10 px-3 py-1 text-cyan-300">
+                              {item.suspected_disease}
+                            </span>
+                            <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
+                              유사도 {(item.similarity * 100).toFixed(1)}%
+                            </span>
+                            <span className="rounded-full bg-red-400/10 px-3 py-1 text-red-300">
+                              사례 위험도 {item.severity_level} ·{" "}
+                              {severityText(item.severity_level)}
+                            </span>
+                          </div>
+
+                          {item.source_url && item.source_url.startsWith("http") && (
+                            <a
+                              href={item.source_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-4 inline-flex rounded-xl border border-cyan-400 px-3 py-2 text-xs font-semibold text-cyan-300 transition hover:bg-cyan-400 hover:text-slate-950"
+                            >
+                              네이버 원문 보기
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   <div>
