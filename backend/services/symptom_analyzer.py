@@ -5,15 +5,13 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 from schemas.triage import SimilarCase
-from services.data_loader import load_naver_cases
+from services.data_loader import load_naver_cases, load_symptom_classifier
 
 
 _vectorizer: TfidfVectorizer | None = None
 _matrix = None
 
 
-# TF-IDF 유사도보다 먼저 적용하는 고위험/특수 증상 키워드 룰.
-# 데이터셋에 희소한 감전, 화상, 중독, 익수 같은 상황의 오분류를 줄이기 위한 보정 계층이다.
 EMERGENCY_KEYWORD_RULES = [
     {
         "keywords": ["감전", "전기", "전류", "콘센트", "누전"],
@@ -135,6 +133,25 @@ def _build_similar_cases(top_rows: pd.DataFrame) -> list[SimilarCase]:
     return similar_cases
 
 
+def _predict_with_trained_classifier(symptom: str) -> dict | None:
+    classifier = load_symptom_classifier()
+    if classifier is None:
+        return None
+
+    try:
+        symptom_group = str(classifier["symptom_group_model"].predict([symptom])[0])
+        department = str(classifier["department_model"].predict([symptom])[0])
+        suspected_disease = str(classifier["disease_model"].predict([symptom])[0])
+
+        return {
+            "symptom_group": symptom_group,
+            "department": department,
+            "suspected_disease": suspected_disease,
+        }
+    except Exception:
+        return None
+
+
 def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
     cases = load_naver_cases()
     vectorizer, matrix = _get_vectorizer()
@@ -146,10 +163,10 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
     top_rows = cases.iloc[top_indices].copy()
     top_rows["similarity"] = sims[top_indices]
 
-    keyword_override = _find_keyword_override(symptom)
-
     similar_cases = _build_similar_cases(top_rows)
     max_similarity = float(top_rows["similarity"].max()) if len(top_rows) else 0.0
+
+    keyword_override = _find_keyword_override(symptom)
 
     if keyword_override is not None:
         return {
@@ -160,6 +177,22 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
             "max_similarity": round(max_similarity, 4),
             "similar_cases": similar_cases,
             "matched_by": "keyword_rule",
+        }
+
+    trained_prediction = _predict_with_trained_classifier(symptom)
+
+    if trained_prediction is not None:
+        naver_severity = int(round(float(top_rows["severity_level"].mean()))) if len(top_rows) else 1
+        naver_severity = max(1, min(5, naver_severity))
+
+        return {
+            "symptom_group": trained_prediction["symptom_group"],
+            "department": trained_prediction["department"],
+            "suspected_disease": trained_prediction["suspected_disease"],
+            "naver_severity_level": naver_severity,
+            "max_similarity": round(max_similarity, 4),
+            "similar_cases": similar_cases,
+            "matched_by": "trained_classifier",
         }
 
     symptom_group = _majority_value(top_rows, "symptom_group", "etc")

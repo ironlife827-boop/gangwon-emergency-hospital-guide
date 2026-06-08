@@ -84,3 +84,11 @@ def load_eta_model():
     if not path.exists():
         return None
     return joblib.load(path)
+
+
+@lru_cache(maxsize=1)
+def load_symptom_classifier():
+    path = MODEL_DIR / "symptom_classifier.pkl"
+    if not path.exists():
+        return None
+    return joblib.load(path)
