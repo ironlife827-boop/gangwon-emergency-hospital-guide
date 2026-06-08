@@ -62,20 +62,6 @@ EMERGENCY_KEYWORD_RULES = [
         "suspected_disease": "뇌졸중 의심",
         "naver_severity_level": 5,
     },
-    {
-        "keywords": ["숨이 차", "숨쉬기 어렵", "호흡곤란", "숨이 안", "쌕쌕"],
-        "symptom_group": "respiratory",
-        "department": "호흡기내과",
-        "suspected_disease": "급성 호흡곤란",
-        "naver_severity_level": 4,
-    },
-    {
-        "keywords": ["가슴", "흉통", "심장", "식은땀", "가슴이 답답"],
-        "symptom_group": "cardio",
-        "department": "심장내과",
-        "suspected_disease": "심혈관계 질환 의심",
-        "naver_severity_level": 4,
-    },
 ]
 
 
