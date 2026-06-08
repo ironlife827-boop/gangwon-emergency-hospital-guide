@@ -67,13 +67,19 @@ const API_BASE_URL = "https://gangwon-emergency-api.onrender.com";
 
 export default function Home() {
   const [symptom, setSymptom] = useState("");
+  const [userLat, setUserLat] = useState("");
+  const [userLon, setUserLon] = useState("");
   const [questionResponse, setQuestionResponse] = useState<QuestionResponse | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [result, setResult] = useState<TriageResult | null>(null);
 
   const [questionLoading, setQuestionLoading] = useState(false);
   const [analyzeLoading, setAnalyzeLoading] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const numericLat = userLat.trim() ? Number(userLat) : null;
+  const numericLon = userLon.trim() ? Number(userLon) : null;
 
   const resetConsultation = () => {
     setQuestionResponse(null);
@@ -81,6 +87,38 @@ export default function Home() {
     setResult(null);
     setErrorMessage("");
   };
+
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setErrorMessage("현재 브라우저에서 위치 권한을 지원하지 않습니다.");
+      return;
+    }
+
+    setLocationLoading(true);
+    setErrorMessage("");
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLat(position.coords.latitude.toFixed(6));
+        setUserLon(position.coords.longitude.toFixed(6));
+        setLocationLoading(false);
+      },
+      () => {
+        setErrorMessage("위치 정보를 가져오지 못했습니다. 위도와 경도를 직접 입력해주세요.");
+        setLocationLoading(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 8000,
+      }
+    );
+  };
+
+  const requestBodyWithLocation = () => ({
+    symptom,
+    user_lat: numericLat,
+    user_lon: numericLon,
+  });
 
   const handleStartConsultation = async () => {
     if (!symptom.trim()) return;
@@ -97,7 +135,7 @@ export default function Home() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ symptom }),
+        body: JSON.stringify(requestBodyWithLocation()),
       });
 
       if (!response.ok) {
@@ -155,6 +193,8 @@ export default function Home() {
         body: JSON.stringify({
           symptom,
           answers: buildPayloadAnswers(),
+          user_lat: numericLat,
+          user_lon: numericLon,
         }),
       });
 
@@ -204,6 +244,42 @@ export default function Home() {
               className="min-h-32 w-full rounded-2xl border border-slate-700 bg-slate-950 p-4 text-sm outline-none placeholder:text-slate-500 focus:border-cyan-400"
               placeholder="예: 갑자기 가슴이 답답하고 숨쉬기가 어려워요."
             />
+
+            <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950 p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-semibold">사용자 위치</p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    입력하지 않으면 춘천시청 인근 기본 좌표로 추천합니다.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleGetCurrentLocation}
+                  disabled={locationLoading}
+                  className="rounded-xl border border-cyan-400 px-4 py-2 text-sm font-semibold text-cyan-300 transition hover:bg-cyan-400 hover:text-slate-950 disabled:cursor-not-allowed disabled:border-slate-700 disabled:text-slate-500"
+                >
+                  {locationLoading ? "위치 확인 중..." : "현재 위치 사용"}
+                </button>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <input
+                  value={userLat}
+                  onChange={(event) => setUserLat(event.target.value)}
+                  className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none placeholder:text-slate-500 focus:border-cyan-400"
+                  placeholder="위도 예: 37.881315"
+                />
+
+                <input
+                  value={userLon}
+                  onChange={(event) => setUserLon(event.target.value)}
+                  className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none placeholder:text-slate-500 focus:border-cyan-400"
+                  placeholder="경도 예: 127.729971"
+                />
+              </div>
+            </div>
 
             <button
               onClick={handleStartConsultation}
