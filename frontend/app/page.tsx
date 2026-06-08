@@ -124,6 +124,79 @@ const severityText = (level: number) => {
   return "경미";
 };
 
+const severityInfo = (level: number) => {
+  if (level === 1) {
+    return {
+      icon: "🚨",
+      title: "매우 긴급",
+      message: "즉시 응급실 방문 또는 119 신고가 권장됩니다.",
+      guide: "응급도 1단계는 가장 위급한 단계입니다.",
+      border: "border-red-500/50",
+      background: "bg-red-500/15",
+      text: "text-red-200",
+      badge: "bg-red-400 text-slate-950",
+    };
+  }
+
+  if (level === 2) {
+    return {
+      icon: "⚠️",
+      title: "긴급",
+      message: "가능한 한 빠르게 응급 진료를 받는 것이 좋습니다.",
+      guide: "응급도 2단계는 빠른 의료 평가가 필요한 단계입니다.",
+      border: "border-orange-500/50",
+      background: "bg-orange-500/15",
+      text: "text-orange-200",
+      badge: "bg-orange-300 text-slate-950",
+    };
+  }
+
+  if (level === 3) {
+    return {
+      icon: "🟡",
+      title: "주의",
+      message: "증상 변화에 주의하면서 빠른 진료를 권장합니다.",
+      guide: "응급도 3단계는 상태 악화 가능성을 확인해야 하는 단계입니다.",
+      border: "border-yellow-500/50",
+      background: "bg-yellow-500/15",
+      text: "text-yellow-100",
+      badge: "bg-yellow-300 text-slate-950",
+    };
+  }
+
+  if (level === 4) {
+    return {
+      icon: "🟢",
+      title: "낮음",
+      message: "응급 가능성은 낮지만 가까운 병원 진료를 고려할 수 있습니다.",
+      guide: "응급도 4단계는 비교적 낮은 위험 단계입니다.",
+      border: "border-emerald-500/50",
+      background: "bg-emerald-500/15",
+      text: "text-emerald-100",
+      badge: "bg-emerald-300 text-slate-950",
+    };
+  }
+
+  return {
+    icon: "🔵",
+    title: "비응급",
+    message: "응급 가능성은 낮습니다. 증상이 지속되면 일반 진료를 권장합니다.",
+    guide: "응급도 5단계는 가장 낮은 응급 단계입니다.",
+    border: "border-sky-500/50",
+    background: "bg-sky-500/15",
+    text: "text-sky-100",
+    badge: "bg-sky-300 text-slate-950",
+  };
+};
+
+const riskScoreInfo = (score: number) => {
+  const safeScore = Math.max(0, Math.min(10, Math.round(score)));
+  return {
+    score: safeScore,
+    percent: safeScore * 10,
+  };
+};
+
 export default function Home() {
   const [symptom, setSymptom] = useState("");
   const [userLat, setUserLat] = useState("");
@@ -482,24 +555,75 @@ export default function Home() {
 
               {result && (
                 <section className="mt-8 space-y-6 border-t border-slate-800 pt-8">
-                  <div className="rounded-2xl border border-red-500/40 bg-red-500/10 p-5">
-                    <p className="text-sm font-semibold text-red-300">
-                      응급도 판단 결과
-                    </p>
+                  <div
+                    className={`rounded-2xl border p-5 ${
+                      severityInfo(result.severity_level).border
+                    } ${severityInfo(result.severity_level).background}`}
+                  >
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-300">
+                          응급도 판단 결과
+                        </p>
 
-                    <h3 className="mt-2 text-3xl font-bold text-red-200">
-                      응급도 {result.severity_level}단계 —{" "}
-                      {result.severity_label}
-                    </h3>
+                        <h3
+                          className={`mt-2 text-3xl font-bold ${
+                            severityInfo(result.severity_level).text
+                          }`}
+                        >
+                          {severityInfo(result.severity_level).icon}{" "}
+                          {severityInfo(result.severity_level).title}
+                        </h3>
 
-                    <p className="mt-3 text-sm text-slate-300">
+                        <p className="mt-2 text-sm font-semibold text-slate-200">
+                          응급도 {result.severity_level}단계 ·{" "}
+                          {severityInfo(result.severity_level).guide}
+                        </p>
+
+                        <p className="mt-3 text-sm text-slate-300">
+                          {severityInfo(result.severity_level).message}
+                        </p>
+                      </div>
+
+                      <div
+                        className={`w-fit rounded-full px-4 py-2 text-sm font-bold ${
+                          severityInfo(result.severity_level).badge
+                        }`}
+                      >
+                        {result.severity_level}단계 / 5단계
+                      </div>
+                    </div>
+
+                    <div className="mt-5 rounded-2xl bg-slate-950/70 p-4">
+                      <div className="mb-2 flex items-center justify-between text-sm">
+                        <span className="font-semibold text-slate-200">
+                          위험도 점수
+                        </span>
+                        <span className="font-bold text-red-200">
+                          {riskScoreInfo(result.risk_score).score} / 10
+                        </span>
+                      </div>
+
+                      <div className="h-3 overflow-hidden rounded-full bg-slate-800">
+                        <div
+                          className="h-full rounded-full bg-red-400 transition-all"
+                          style={{
+                            width: `${riskScoreInfo(result.risk_score).percent}%`,
+                          }}
+                        />
+                      </div>
+
+                      <p className="mt-2 text-xs text-slate-500">
+                        위험도 점수는 문진 답변, 유사 사례 위험도, 응급도 모델
+                        결과를 종합한 10점 기준 지표입니다.
+                      </p>
+                    </div>
+
+                    <p className="mt-4 text-sm text-slate-300">
                       {result.summary}
                     </p>
 
-                    <div className="mt-4 grid gap-3 text-sm md:grid-cols-4">
-                      <div className="rounded-xl bg-slate-950/70 p-3">
-                        위험 점수: {result.risk_score}점
-                      </div>
+                    <div className="mt-4 grid gap-3 text-sm md:grid-cols-3">
                       <div className="rounded-xl bg-slate-950/70 p-3">
                         필요 자원: {result.required_resource_code}
                       </div>
@@ -517,6 +641,16 @@ export default function Home() {
                     <p className="mt-3 text-sm text-slate-400">
                       {result.evidence.explanation}
                     </p>
+
+                    <div className="mt-4 rounded-xl border border-slate-800 bg-slate-900 p-4 text-sm text-slate-300">
+                      <p className="font-semibold text-slate-100">
+                        응급도 단계 해석
+                      </p>
+                      <p className="mt-2">
+                        1단계가 가장 위급하고, 5단계가 가장 낮은 응급 단계입니다.
+                        위험도 점수는 10점에 가까울수록 위험도가 높습니다.
+                      </p>
+                    </div>
                   </div>
 
                   <div>
