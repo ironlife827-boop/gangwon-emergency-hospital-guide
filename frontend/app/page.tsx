@@ -10,6 +10,7 @@ type SimilarCase = {
   suspected_disease: string;
   severity_level: number;
   similarity: number;
+  source_url?: string | null;
 };
 
 type AnalysisEvidence = {
@@ -489,6 +490,17 @@ export default function Home() {
                           {severityText(item.severity_level)}
                         </span>
                       </div>
+                      
+                      {item.source_url && item.source_url.startsWith("http") && (
+                        <a
+                          href={item.source_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-4 inline-flex rounded-xl border border-cyan-400 px-3 py-2 text-xs font-semibold text-cyan-300 transition hover:bg-cyan-400 hover:text-slate-950"
+                        >
+                          네이버 원문 보기
+                        </a>
+                      )}
                     </div>
                   ))}
                 </div>
