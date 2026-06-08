@@ -16,6 +16,7 @@ class SimilarCase(BaseModel):
     suspected_disease: str
     severity_level: int
     similarity: float
+    source_url: str | None = None
 
 
 class AnalysisEvidence(BaseModel):

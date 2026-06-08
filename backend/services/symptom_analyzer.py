@@ -113,6 +113,7 @@ def _build_similar_cases(top_rows: pd.DataFrame) -> list[SimilarCase]:
                 suspected_disease=str(row["suspected_disease"]),
                 severity_level=int(row["severity_level"]),
                 similarity=round(float(row["similarity"]), 4),
+                source_url=str(row.get("source_url", "")),
             )
         )
 
