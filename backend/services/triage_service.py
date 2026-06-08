@@ -2,20 +2,13 @@ from __future__ import annotations
 
 import pandas as pd
 
-from schemas.triage import (
-    AnalysisEvidence,
-    TriageAnalyzeRequest,
-    TriageAnalyzeResponse,
-    TriageQuestion,
-)
-from services.data_loader import load_severity_model, load_triage_rules
+from schemas.triage import AnalysisEvidence, TriageAnalyzeRequest, TriageAnalyzeResponse, TriageQuestion
+from services.data_loader import load_disease_questions, load_severity_model, load_triage_rules
 from services.recommendation_service import recommend_hospitals
 from services.symptom_analyzer import analyze_symptom_text
 
-
 YES_VALUES = {"예", "네", "있음", "그렇다", "맞음", "yes", "y"}
 UNKNOWN_VALUES = {"잘 모르겠음", "모름", "unknown"}
-
 
 QUESTION_REWRITE_MAP = {
     "심폐소생술이 필요한 증상": "의식이 없거나 호흡이 멈춘 것처럼 보이나요?",
@@ -33,132 +26,106 @@ QUESTION_REWRITE_MAP = {
     "알레르기": "두드러기, 얼굴·입술 부종, 숨참이 동반되나요?",
 }
 
+def _normalize_text(text: str) -> str:
+    return str(text).lower().replace(" ", "").replace(",", "").replace(".", "")
+
+def _contains_any_keyword(symptom: str, keyword_text: str) -> bool:
+    symptom_norm = _normalize_text(symptom)
+    keywords = [_normalize_text(k) for k in str(keyword_text).split(";") if str(k).strip()]
+    return any(k and k in symptom_norm for k in keywords)
 
 def _severity_label(level: int) -> str:
-    labels = {
-        1: "매우 긴급",
-        2: "긴급",
-        3: "주의",
-        4: "낮음",
-        5: "비응급",
-    }
+    labels = {1: "매우 긴급", 2: "긴급", 3: "주의", 4: "낮음", 5: "비응급"}
     return labels.get(level, "주의")
-
 
 def _rewrite_question(raw_question: str) -> str:
     raw_question = str(raw_question).strip()
-
     for keyword, rewritten in QUESTION_REWRITE_MAP.items():
         if keyword in raw_question:
             return rewritten
-
     question = raw_question.replace(" 증상 증상이 있습니까?", " 증상이 있나요?")
     question = question.replace(" 증상이 있습니까?", " 증상이 있나요?")
     question = question.replace("있습니까?", "있나요?")
     return question
 
+def _rule_row_to_question(row) -> TriageQuestion:
+    return TriageQuestion(id=str(row["question_id"]), question=_rewrite_question(str(row["question"])), options=["예", "아니오", "잘 모르겠음"], allow_custom=False)
 
-def _select_triage_questions(symptom_group: str, limit: int = 4) -> list[TriageQuestion]:
+def _select_fallback_triage_questions(symptom_group: str, existing_question_ids: set[str], limit: int) -> list[TriageQuestion]:
     rules = load_triage_rules()
-
     group_rules = rules[rules["symptom_group"] == symptom_group].copy()
     if group_rules.empty:
         group_rules = rules.copy()
-
     group_rules = group_rules.sort_values("risk_score", ascending=False)
-
     questions: list[TriageQuestion] = []
-    used_question_ids: set[str] = set()
-
     for _, row in group_rules.iterrows():
         question_id = str(row["question_id"])
-        if question_id in used_question_ids:
+        if question_id in existing_question_ids:
             continue
-
-        questions.append(
-            TriageQuestion(
-                id=question_id,
-                question=_rewrite_question(str(row["question"])),
-                options=["예", "아니오", "잘 모르겠음"],
-                allow_custom=False,
-            )
-        )
-        used_question_ids.add(question_id)
-
+        questions.append(_rule_row_to_question(row))
+        existing_question_ids.add(question_id)
         if len(questions) >= limit:
             break
-
     return questions
 
+def _select_dynamic_questions(symptom: str, analysis: dict, limit: int = 4) -> list[TriageQuestion]:
+    disease_questions = load_disease_questions()
+    selected: list[TriageQuestion] = []
+    selected_ids: set[str] = set()
+    if not disease_questions.empty:
+        disease = str(analysis.get("suspected_disease", ""))
+        symptom_group = str(analysis.get("symptom_group", ""))
+        exact_rows = disease_questions[disease_questions["suspected_disease"].eq(disease)].copy()
+        group_rows = disease_questions[disease_questions["symptom_group"].eq(symptom_group) & ~disease_questions["suspected_disease"].eq(disease)].copy()
+        candidate_rows = pd.concat([exact_rows, group_rows], ignore_index=True)
+        candidate_rows = candidate_rows.sort_values(["importance", "risk_score"], ascending=[False, False])
+        for _, row in candidate_rows.iterrows():
+            question_id = str(row["question_id"])
+            if question_id in selected_ids:
+                continue
+            if _contains_any_keyword(symptom, str(row.get("positive_keywords", ""))):
+                continue
+            selected.append(TriageQuestion(id=question_id, question=str(row["question"]), options=["예", "아니오", "잘 모르겠음"], allow_custom=False))
+            selected_ids.add(question_id)
+            if len(selected) >= limit:
+                break
+    min_questions = 1 if analysis.get("matched_by") == "keyword_rule" else 2
+    if len(selected) < min_questions:
+        selected.extend(_select_fallback_triage_questions(str(analysis.get("symptom_group", "")), selected_ids, min_questions - len(selected)))
+    return selected[:limit]
 
 def _build_evidence(analysis: dict) -> AnalysisEvidence:
     matched_by = analysis.get("matched_by", "similarity")
     top_score = float(analysis.get("max_similarity", 0))
-
     if matched_by == "keyword_rule":
-        explanation = (
-            "감전·화상·출혈·마비 등 고위험 응급 키워드가 탐지되어 "
-            "사례 유사도보다 응급 키워드 룰을 우선 적용했습니다."
-        )
+        explanation = "고위험 응급 키워드가 탐지되어 응급 키워드 룰을 우선 적용했습니다."
     elif matched_by == "trained_classifier":
-        explanation = (
-            "자체 수집한 네이버 지식인 증상 사례 데이터로 학습한 "
-            "symptom_classifier.pkl 모델이 증상군·진료과·의심질환을 예측했습니다. "
-            "유사 사례 검색 결과는 판단 근거로 함께 제시됩니다."
-        )
+        explanation = "자체 수집한 네이버 지식인 증상 사례 데이터로 학습한 symptom_classifier.pkl 모델이 증상군·진료과·의심질환을 예측했습니다."
     else:
-        explanation = (
-            "학습 모델 또는 키워드 룰이 확정적으로 적용되지 않아 "
-            "네이버 지식인 실제 증상 사례와의 TF-IDF 유사도 검색 결과를 기반으로 추론했습니다."
-        )
-
-    return AnalysisEvidence(
-        method=matched_by,
-        model_used=matched_by == "trained_classifier",
-        keyword_rule_used=matched_by == "keyword_rule",
-        similarity_top_score=round(top_score, 4),
-        explanation=explanation,
-    )
-
+        explanation = "네이버 지식인 실제 증상 사례와의 TF-IDF 유사도 검색 결과를 기반으로 추론했습니다."
+    return AnalysisEvidence(method=matched_by, model_used=matched_by == "trained_classifier", keyword_rule_used=matched_by == "keyword_rule", similarity_top_score=round(top_score, 4), explanation=explanation)
 
 def create_data_driven_questions(symptom: str) -> dict:
     analysis = analyze_symptom_text(symptom)
-    questions = _select_triage_questions(analysis["symptom_group"], limit=4)
-
-    return {
-        "symptom": symptom,
-        "symptom_group": analysis["symptom_group"],
-        "department": analysis["department"],
-        "suspected_disease": analysis["suspected_disease"],
-        "need_followup": len(questions) > 0,
-        "questions": questions,
-        "similar_cases": analysis["similar_cases"],
-        "evidence": _build_evidence(analysis),
-    }
-
+    questions = _select_dynamic_questions(symptom=symptom, analysis=analysis, limit=4)
+    return {"symptom": symptom, "symptom_group": analysis["symptom_group"], "department": analysis["department"], "suspected_disease": analysis["suspected_disease"], "need_followup": len(questions) > 0, "questions": questions, "similar_cases": analysis["similar_cases"], "evidence": _build_evidence(analysis)}
 
 def _answer_to_score(answer: str, rule_score: float) -> float:
     normalized = str(answer).strip().lower()
-
     if answer in YES_VALUES or normalized in YES_VALUES:
         return float(rule_score)
-
     if answer in UNKNOWN_VALUES or normalized in UNKNOWN_VALUES:
         return float(rule_score) * 0.4
-
     return 0.0
-
 
 def _predict_severity_from_score(risk_score: float) -> int:
     model = load_severity_model()
-
     if model is not None:
         try:
             prediction = int(model.predict(pd.DataFrame([{"risk_score": risk_score}]))[0])
             return max(1, min(5, prediction))
         except Exception:
             pass
-
     if risk_score >= 5:
         return 1
     if risk_score >= 4:
@@ -169,6 +136,15 @@ def _predict_severity_from_score(risk_score: float) -> int:
         return 4
     return 5
 
+def _build_question_score_map() -> dict:
+    rules = load_triage_rules()
+    disease_questions = load_disease_questions()
+    score_map: dict[str, dict] = {}
+    for _, row in rules.iterrows():
+        score_map[str(row["question_id"])] = {"risk_score": float(row.get("risk_score", 0)), "required_resource_code": str(row.get("required_resource_code", ""))}
+    for _, row in disease_questions.iterrows():
+        score_map[str(row["question_id"])] = {"risk_score": float(row.get("risk_score", 0)), "required_resource_code": str(row.get("required_resource_code", ""))}
+    return score_map
 
 def _primary_case_disease(symptom_analysis: dict) -> str:
     similar_cases = symptom_analysis.get("similar_cases", [])
@@ -178,87 +154,28 @@ def _primary_case_disease(symptom_analysis: dict) -> str:
             return first_case.suspected_disease
     return symptom_analysis["suspected_disease"]
 
-
 def analyze_data_driven_triage(payload: TriageAnalyzeRequest) -> TriageAnalyzeResponse:
     symptom_analysis = analyze_symptom_text(payload.symptom)
-    rules = load_triage_rules()
-
-    rule_map = rules.set_index("question_id").to_dict(orient="index")
-
+    question_score_map = _build_question_score_map()
     total_risk_score = 0.0
     matched_resource_codes: list[str] = []
-
     for answer in payload.answers:
-        rule = rule_map.get(answer.question_id)
+        rule = question_score_map.get(answer.question_id)
         if not rule:
             continue
-
-        rule_score = float(rule.get("risk_score", 0))
-        added_score = _answer_to_score(answer.answer, rule_score)
+        added_score = _answer_to_score(answer.answer, float(rule.get("risk_score", 0)))
         total_risk_score += added_score
-
         if added_score > 0:
             matched_resource_codes.append(str(rule.get("required_resource_code", "")))
-
     naver_level = int(symptom_analysis["naver_severity_level"])
-    naver_based_risk = max(0, naver_level - 1)
-
-    combined_risk_score = max(total_risk_score, naver_based_risk)
+    combined_risk_score = max(total_risk_score, max(0, naver_level - 1))
     severity_level = _predict_severity_from_score(combined_risk_score)
-
-    required_resource_code = (
-        matched_resource_codes[0]
-        if matched_resource_codes
-        else _resource_code_from_group(symptom_analysis["symptom_group"])
-    )
-
-    suspected_disease = _primary_case_disease(symptom_analysis)
-
-    hospitals = recommend_hospitals(
-        department=symptom_analysis["department"],
-        severity_level=severity_level,
-        user_lat=payload.user_lat,
-        user_lon=payload.user_lon,
-        limit=3,
-    )
-
+    required_resource_code = matched_resource_codes[0] if matched_resource_codes else _resource_code_from_group(symptom_analysis["symptom_group"])
+    hospitals = recommend_hospitals(department=symptom_analysis["department"], severity_level=severity_level, user_lat=payload.user_lat, user_lon=payload.user_lon, limit=3)
     evidence = _build_evidence(symptom_analysis)
-
-    summary = (
-        f"입력 증상은 '{symptom_analysis['symptom_group']}' 증상군과 가장 유사하며, "
-        f"추천 진료과는 {symptom_analysis['department']}입니다. "
-        f"증상 분류 모델/응급 키워드 룰/유사 사례 검색, 문진 위험 점수, 응급도 모델을 결합해 "
-        f"응급도 {severity_level}단계로 산출했습니다."
-    )
-
-    return TriageAnalyzeResponse(
-        severity_level=severity_level,
-        severity_label=_severity_label(severity_level),
-        risk_score=int(round(combined_risk_score)),
-        required_resource_code=required_resource_code,
-        symptom_group=symptom_analysis["symptom_group"],
-        department=symptom_analysis["department"],
-        suspected_disease=suspected_disease,
-        summary=summary,
-        evidence=evidence,
-        similar_cases=symptom_analysis["similar_cases"],
-        hospitals=hospitals,
-    )
-
+    summary = f"입력 증상은 '{symptom_analysis['symptom_group']}' 증상군과 가장 유사하며, 추천 진료과는 {symptom_analysis['department']}입니다. 증상 분류 모델/응급 키워드 룰/유사 사례 검색, 동적 문진 위험 점수, 응급도 모델을 결합해 응급도 {severity_level}단계로 산출했습니다."
+    return TriageAnalyzeResponse(severity_level=severity_level, severity_label=_severity_label(severity_level), risk_score=int(round(combined_risk_score)), required_resource_code=required_resource_code, symptom_group=symptom_analysis["symptom_group"], department=symptom_analysis["department"], suspected_disease=_primary_case_disease(symptom_analysis), summary=summary, evidence=evidence, similar_cases=symptom_analysis["similar_cases"], hospitals=hospitals)
 
 def _resource_code_from_group(symptom_group: str) -> str:
-    mapping = {
-        "cardio": "ER_CARDIO",
-        "neuro": "ER_NEURO",
-        "respiratory": "ER_RESP",
-        "abdominal": "ER_GENERAL",
-        "trauma": "ER_TRAUMA",
-        "orthopedic": "ER_TRAUMA",
-        "bleeding": "ER_TRAUMA",
-        "pediatric": "ER_PED",
-        "allergy": "ER_GENERAL",
-        "infection": "ER_GENERAL",
-        "toxic": "ER_GENERAL",
-        "poisoning": "ER_GENERAL",
-    }
+    mapping = {"cardio": "ER_CARDIO", "neuro": "ER_NEURO", "respiratory": "ER_RESP", "abdominal": "ER_GENERAL", "trauma": "ER_TRAUMA", "orthopedic": "ER_TRAUMA", "bleeding": "ER_TRAUMA", "pediatric": "ER_PED", "allergy": "ER_GENERAL", "infection": "ER_GENERAL", "toxic": "ER_GENERAL", "poisoning": "ER_GENERAL"}
     return mapping.get(symptom_group, "ER_GENERAL")

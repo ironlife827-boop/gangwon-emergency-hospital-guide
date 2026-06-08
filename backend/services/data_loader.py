@@ -32,29 +32,34 @@ def load_triage_rules() -> pd.DataFrame:
 
 
 @lru_cache(maxsize=1)
+def load_disease_questions() -> pd.DataFrame:
+    path = DATA_DIR / "disease_question_map.csv"
+    if not path.exists():
+        return pd.DataFrame(columns=["question_id","suspected_disease","symptom_group","question","positive_keywords","risk_score","required_resource_code","importance"])
+    df = pd.read_csv(path)
+    df["risk_score"] = pd.to_numeric(df["risk_score"], errors="coerce").fillna(0)
+    df["importance"] = pd.to_numeric(df["importance"], errors="coerce").fillna(0)
+    for col in ["question_id","suspected_disease","symptom_group","question","positive_keywords","required_resource_code"]:
+        df[col] = df[col].fillna("").astype(str)
+    return df
+
+
+@lru_cache(maxsize=1)
 def load_naver_cases() -> pd.DataFrame:
     path = DATA_DIR / "naver_kin_symptom_cases.csv"
     df = pd.read_csv(path)
-    for col in [
-        "raw_text",
-        "cleaned_text",
-        "symptom_keywords",
-        "symptom_group",
-        "department",
-        "suspected_disease",
-    ]:
+    for col in ["raw_text","cleaned_text","symptom_keywords","symptom_group","department","suspected_disease"]:
         df[col] = df[col].fillna("")
+    if "source_url" not in df.columns:
+        df["source_url"] = ""
+    df["source_url"] = df["source_url"].fillna("")
     df["severity_level"] = pd.to_numeric(df["severity_level"], errors="coerce").fillna(1).astype(int)
     df["search_text"] = (
-        df["cleaned_text"].astype(str)
-        + " "
-        + df["symptom_keywords"].astype(str).str.replace(";", " ", regex=False)
-        + " "
-        + df["symptom_group"].astype(str)
-        + " "
-        + df["department"].astype(str)
-        + " "
-        + df["suspected_disease"].astype(str)
+        df["cleaned_text"].astype(str) + " " +
+        df["symptom_keywords"].astype(str).str.replace(";", " ", regex=False) + " " +
+        df["symptom_group"].astype(str) + " " +
+        df["department"].astype(str) + " " +
+        df["suspected_disease"].astype(str)
     )
     return df
 
