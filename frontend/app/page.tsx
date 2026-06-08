@@ -12,6 +12,14 @@ type SimilarCase = {
   similarity: number;
 };
 
+type AnalysisEvidence = {
+  method: string;
+  model_used: boolean;
+  keyword_rule_used: boolean;
+  similarity_top_score: number;
+  explanation: string;
+};
+
 type TriageQuestion = {
   id: string;
   question: string;
@@ -48,9 +56,7 @@ type QuestionResponse = {
   need_followup: boolean;
   questions: TriageQuestion[];
   similar_cases: SimilarCase[];
-  llm_used: boolean;
-  llm_keywords: string[];
-  llm_missing_fields: string[];
+  evidence: AnalysisEvidence;
 };
 
 type TriageResult = {
@@ -62,6 +68,7 @@ type TriageResult = {
   department: string;
   suspected_disease: string;
   summary: string;
+  evidence: AnalysisEvidence;
   similar_cases: SimilarCase[];
   hospitals: RecommendedHospital[];
 };
@@ -134,9 +141,7 @@ export default function Home() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("문진 질문을 불러오지 못했습니다.");
-      }
+      if (!response.ok) throw new Error("문진 질문을 불러오지 못했습니다.");
 
       const data = await response.json();
       setQuestionResponse(data);
@@ -189,9 +194,7 @@ export default function Home() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("응급도 분석에 실패했습니다.");
-      }
+      if (!response.ok) throw new Error("응급도 분석에 실패했습니다.");
 
       const data = await response.json();
       setResult(data);
@@ -200,6 +203,12 @@ export default function Home() {
     } finally {
       setAnalyzeLoading(false);
     }
+  };
+
+  const methodLabel = (method: string) => {
+    if (method === "keyword_rule") return "응급 키워드 우선 룰";
+    if (method === "trained_classifier") return "자체 학습 증상 분류 모델";
+    return "유사 사례 검색";
   };
 
   return (
@@ -217,8 +226,8 @@ export default function Home() {
           </h1>
 
           <p className="mx-auto mt-5 max-w-3xl text-slate-300 md:text-lg">
-            LLM 보조 구조화, 실제 사례 유사도, 문진 규칙, 응급도 모델,
-            병원·ETA 데이터를 결합해 분석합니다.
+            자체 수집한 증상 사례 데이터, 증상 분류 모델, 문진 규칙, 응급도 모델,
+            병원·ETA 데이터를 결합해 병원을 추천합니다.
           </p>
         </header>
 
@@ -313,34 +322,34 @@ export default function Home() {
               </div>
 
               <div className="mb-8 rounded-2xl border border-slate-800 bg-slate-950 p-5">
-                <h2 className="text-xl font-bold">LLM 구조화 보조</h2>
+                <h2 className="text-xl font-bold">판단 근거</h2>
 
-                {questionResponse.llm_used ? (
-                  <div className="mt-4 grid gap-3 md:grid-cols-2">
-                    <div className="rounded-xl bg-slate-900 p-4 text-sm">
-                      <p className="mb-2 text-slate-500">추출 키워드</p>
-                      <p className="text-cyan-300">
-                        {questionResponse.llm_keywords.length > 0
-                          ? questionResponse.llm_keywords.join(", ")
-                          : "없음"}
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl bg-slate-900 p-4 text-sm">
-                      <p className="mb-2 text-slate-500">부족 정보</p>
-                      <p className="text-cyan-300">
-                        {questionResponse.llm_missing_fields.length > 0
-                          ? questionResponse.llm_missing_fields.join(", ")
-                          : "없음"}
-                      </p>
-                    </div>
+                <div className="mt-4 grid gap-3 md:grid-cols-3">
+                  <div className="rounded-xl bg-slate-900 p-4 text-sm">
+                    <p className="mb-2 text-slate-500">분석 방식</p>
+                    <p className="font-semibold text-cyan-300">
+                      {methodLabel(questionResponse.evidence.method)}
+                    </p>
                   </div>
-                ) : (
-                  <p className="mt-3 text-sm text-slate-400">
-                    현재는 데이터 기반 분석 모드입니다. Render 환경변수에 OPENAI_API_KEY를
-                    등록하면 LLM 구조화 보조가 활성화됩니다.
-                  </p>
-                )}
+
+                  <div className="rounded-xl bg-slate-900 p-4 text-sm">
+                    <p className="mb-2 text-slate-500">학습 모델 사용</p>
+                    <p className="font-semibold text-cyan-300">
+                      {questionResponse.evidence.model_used ? "사용" : "미사용"}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl bg-slate-900 p-4 text-sm">
+                    <p className="mb-2 text-slate-500">최고 유사도</p>
+                    <p className="font-semibold text-cyan-300">
+                      {(questionResponse.evidence.similarity_top_score * 100).toFixed(1)}%
+                    </p>
+                  </div>
+                </div>
+
+                <p className="mt-4 text-sm text-slate-400">
+                  {questionResponse.evidence.explanation}
+                </p>
               </div>
 
               <div className="mb-8 rounded-2xl border border-slate-800 bg-slate-950 p-5">
@@ -364,7 +373,7 @@ export default function Home() {
               <div className="mb-6">
                 <h2 className="text-2xl font-bold">추가 문진</h2>
                 <p className="mt-2 text-sm text-slate-400">
-                  LLM 보조 질문과 문진 데이터셋 기반 핵심 질문을 함께 제시합니다.
+                  증상군에 해당하는 문진 규칙 중 위험 점수가 높은 핵심 질문을 제시합니다.
                 </p>
               </div>
 
@@ -434,6 +443,13 @@ export default function Home() {
                         증상군: {result.symptom_group}
                       </div>
                     </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
+                    <h3 className="text-xl font-bold">최종 판단 근거</h3>
+                    <p className="mt-3 text-sm text-slate-400">
+                      {result.evidence.explanation}
+                    </p>
                   </div>
 
                   <div>

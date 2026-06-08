@@ -3,12 +3,12 @@ from __future__ import annotations
 import pandas as pd
 
 from schemas.triage import (
+    AnalysisEvidence,
     TriageAnalyzeRequest,
     TriageAnalyzeResponse,
     TriageQuestion,
 )
 from services.data_loader import load_severity_model, load_triage_rules
-from services.llm_service import structure_symptom_with_llm
 from services.recommendation_service import recommend_hospitals
 from services.symptom_analyzer import analyze_symptom_text
 
@@ -91,43 +91,39 @@ def _select_triage_questions(symptom_group: str, limit: int = 4) -> list[TriageQ
     return questions
 
 
-def _llm_questions_to_triage_questions(llm_result: dict | None) -> list[TriageQuestion]:
-    if not llm_result:
-        return []
+def _build_evidence(analysis: dict) -> AnalysisEvidence:
+    matched_by = analysis.get("matched_by", "similarity")
+    top_score = float(analysis.get("max_similarity", 0))
 
-    questions = []
-    for index, item in enumerate(llm_result.get("followup_questions", [])[:2], start=1):
-        questions.append(
-            TriageQuestion(
-                id=f"LLM_{index}",
-                question=str(item["question"]),
-                options=[str(option) for option in item.get("options", ["예", "아니오", "잘 모르겠음"])],
-                allow_custom=False,
-            )
+    if matched_by == "keyword_rule":
+        explanation = (
+            "감전·화상·출혈·마비 등 고위험 응급 키워드가 탐지되어 "
+            "사례 유사도보다 응급 키워드 룰을 우선 적용했습니다."
         )
-    return questions
+    elif matched_by == "trained_classifier":
+        explanation = (
+            "자체 수집한 네이버 지식인 증상 사례 데이터로 학습한 "
+            "symptom_classifier.pkl 모델이 증상군·진료과·의심질환을 예측했습니다. "
+            "유사 사례 검색 결과는 판단 근거로 함께 제시됩니다."
+        )
+    else:
+        explanation = (
+            "학습 모델 또는 키워드 룰이 확정적으로 적용되지 않아 "
+            "네이버 지식인 실제 증상 사례와의 TF-IDF 유사도 검색 결과를 기반으로 추론했습니다."
+        )
 
-
-def _build_enriched_query(symptom: str, llm_result: dict | None) -> str:
-    if not llm_result:
-        return symptom
-
-    normalized = str(llm_result.get("normalized_symptom", symptom))
-    keywords = " ".join(llm_result.get("keywords", []))
-    return f"{symptom} {normalized} {keywords}".strip()
+    return AnalysisEvidence(
+        method=matched_by,
+        model_used=matched_by == "trained_classifier",
+        keyword_rule_used=matched_by == "keyword_rule",
+        similarity_top_score=round(top_score, 4),
+        explanation=explanation,
+    )
 
 
 def create_data_driven_questions(symptom: str) -> dict:
-    llm_result = structure_symptom_with_llm(symptom)
-    enriched_query = _build_enriched_query(symptom, llm_result)
-
-    analysis = analyze_symptom_text(enriched_query)
-
-    llm_questions = _llm_questions_to_triage_questions(llm_result)
-    remaining_limit = max(2, 4 - len(llm_questions))
-    data_questions = _select_triage_questions(analysis["symptom_group"], limit=remaining_limit)
-
-    questions = (llm_questions + data_questions)[:4]
+    analysis = analyze_symptom_text(symptom)
+    questions = _select_triage_questions(analysis["symptom_group"], limit=4)
 
     return {
         "symptom": symptom,
@@ -137,9 +133,7 @@ def create_data_driven_questions(symptom: str) -> dict:
         "need_followup": len(questions) > 0,
         "questions": questions,
         "similar_cases": analysis["similar_cases"],
-        "llm_used": llm_result is not None,
-        "llm_keywords": llm_result.get("keywords", []) if llm_result else [],
-        "llm_missing_fields": llm_result.get("missing_fields", []) if llm_result else [],
+        "evidence": _build_evidence(analysis),
     }
 
 
@@ -185,19 +179,8 @@ def _primary_case_disease(symptom_analysis: dict) -> str:
     return symptom_analysis["suspected_disease"]
 
 
-def _expanded_symptom_with_llm_answers(payload: TriageAnalyzeRequest) -> str:
-    extra_parts = []
-    for answer in payload.answers:
-        if answer.question_id.startswith("LLM_"):
-            extra_parts.append(f"{answer.question} {answer.answer}")
-    if not extra_parts:
-        return payload.symptom
-    return f"{payload.symptom} {' '.join(extra_parts)}"
-
-
 def analyze_data_driven_triage(payload: TriageAnalyzeRequest) -> TriageAnalyzeResponse:
-    expanded_symptom = _expanded_symptom_with_llm_answers(payload)
-    symptom_analysis = analyze_symptom_text(expanded_symptom)
+    symptom_analysis = analyze_symptom_text(payload.symptom)
     rules = load_triage_rules()
 
     rule_map = rules.set_index("question_id").to_dict(orient="index")
@@ -206,9 +189,6 @@ def analyze_data_driven_triage(payload: TriageAnalyzeRequest) -> TriageAnalyzeRe
     matched_resource_codes: list[str] = []
 
     for answer in payload.answers:
-        if answer.question_id.startswith("LLM_"):
-            continue
-
         rule = rule_map.get(answer.question_id)
         if not rule:
             continue
@@ -242,10 +222,12 @@ def analyze_data_driven_triage(payload: TriageAnalyzeRequest) -> TriageAnalyzeRe
         limit=3,
     )
 
+    evidence = _build_evidence(symptom_analysis)
+
     summary = (
         f"입력 증상은 '{symptom_analysis['symptom_group']}' 증상군과 가장 유사하며, "
         f"추천 진료과는 {symptom_analysis['department']}입니다. "
-        f"LLM 구조화 보조, 네이버 실제 사례 유사도, 문진 위험 점수, 응급도 모델을 결합해 "
+        f"증상 분류 모델/응급 키워드 룰/유사 사례 검색, 문진 위험 점수, 응급도 모델을 결합해 "
         f"응급도 {severity_level}단계로 산출했습니다."
     )
 
@@ -258,6 +240,7 @@ def analyze_data_driven_triage(payload: TriageAnalyzeRequest) -> TriageAnalyzeRe
         department=symptom_analysis["department"],
         suspected_disease=suspected_disease,
         summary=summary,
+        evidence=evidence,
         similar_cases=symptom_analysis["similar_cases"],
         hospitals=hospitals,
     )
@@ -275,6 +258,7 @@ def _resource_code_from_group(symptom_group: str) -> str:
         "pediatric": "ER_PED",
         "allergy": "ER_GENERAL",
         "infection": "ER_GENERAL",
+        "toxic": "ER_GENERAL",
         "poisoning": "ER_GENERAL",
     }
     return mapping.get(symptom_group, "ER_GENERAL")

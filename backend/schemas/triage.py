@@ -18,6 +18,14 @@ class SimilarCase(BaseModel):
     similarity: float
 
 
+class AnalysisEvidence(BaseModel):
+    method: str
+    model_used: bool
+    keyword_rule_used: bool
+    similarity_top_score: float
+    explanation: str
+
+
 class TriageQuestionRequest(BaseModel):
     symptom: str = Field(..., min_length=1)
     user_lat: float | None = None
@@ -32,10 +40,7 @@ class TriageQuestionResponse(BaseModel):
     need_followup: bool
     questions: list[TriageQuestion]
     similar_cases: list[SimilarCase] = []
-
-    llm_used: bool = False
-    llm_keywords: list[str] = []
-    llm_missing_fields: list[str] = []
+    evidence: AnalysisEvidence
 
 
 class TriageAnswer(BaseModel):
@@ -75,5 +80,6 @@ class TriageAnalyzeResponse(BaseModel):
     department: str
     suspected_disease: str
     summary: str
+    evidence: AnalysisEvidence
     similar_cases: list[SimilarCase] = []
     hospitals: list[RecommendedHospital]
