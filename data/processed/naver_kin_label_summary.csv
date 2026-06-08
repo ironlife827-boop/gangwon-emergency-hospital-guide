@@ -1,0 +1,53 @@
+﻿symptom_group,department,suspected_disease,count
+etc_emerg,응급의학과,기타 응급질환,62
+neuro,신경과,뇌졸중,40
+abdominal,소화기내과,급성복증,33
+trauma,정형외과,골절,32
+cardio,심장내과,급성 심근경색,21
+cardio,심장내과,부정맥,21
+trauma,응급의학과,화상,18
+allergy,응급의학과,벌쏘임,17
+respiratory,응급의학과,익수,17
+respiratory,응급의학과,질식,17
+toxic,응급의학과,독사교상,17
+toxic,응급의학과,일산화탄소중독,17
+trauma,응급의학과,전기손상,17
+cardio,응급의학과,심정지,16
+respiratory,응급의학과,기도폐쇄,16
+neuro,응급의학과,외상성 뇌손상,15
+toxic,응급의학과,당뇨병성 응급질환,15
+toxic,응급의학과,화학물질 중독,15
+etc_emerg,응급의학과,응급수술 필요,14
+trauma,정형외과,관통손상,14
+trauma,정형외과,탈구,14
+allergy,알레르기내과,아나필락시스,13
+cardio,심장내과,쇼크,13
+eye,안과,눈 이물,13
+neuro,신경과,어지럼증,13
+obgy,산부인과,산과적 응급상황,13
+toxic,응급의학과,약물중독,13
+trauma,정형외과,혈관손상,13
+urology,비뇨의학과,신부전,13
+abdominal,소화기내과,장폐색,12
+eye,안과,화학성 안손상,12
+foreign_body,이비인후과,귀 이물,12
+foreign_body,이비인후과,코 이물,12
+obgy,산부인과,성폭력 관련 응급상황,12
+psychiatric,정신건강의학과,정신과적 응급상황,12
+toxic,응급의학과,간부전,12
+trauma,정형외과,다발성외상,12
+trauma,정형외과,중증 외상,12
+abdominal,소화기내과,복막염,11
+abdominal,소화기내과,위장관출혈,11
+eye,안과,급성 시력상실,11
+foreign_body,외과,항문 이물,11
+pediatric,소아청소년과,열성경련,11
+toxic,응급의학과,알코올중독,11
+toxic,응급의학과,중증 탈수,11
+urology,비뇨의학과,배뇨장애,11
+bleeding,응급의학과,객혈,10
+trauma,정형외과,외상,10
+abdominal,소화기내과,급성췌장염,9
+respiratory,호흡기내과,호흡부전,9
+trauma,정형외과,대퇴골골절,8
+trauma,정형외과,척추골절,8
