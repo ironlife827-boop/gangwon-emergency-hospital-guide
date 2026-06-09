@@ -72,6 +72,10 @@ class RecommendedHospital(BaseModel):
     address: str | None = None
     phone: str | None = None
     distance_km: float | None = None
+    lat: float | None = None
+    lon: float | None = None
+    route_url: str | None = None
+    route_app_url: str | None = None
     is_emergency: int | None = None
 
 

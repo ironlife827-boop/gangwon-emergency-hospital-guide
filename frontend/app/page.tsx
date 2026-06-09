@@ -47,6 +47,10 @@ type RecommendedHospital = {
   address?: string | null;
   phone?: string | null;
   distance_km?: number | null;
+  lat?: number | null;
+  lon?: number | null;
+  route_url?: string | null;
+  route_app_url?: string | null;
   is_emergency?: number | null;
 };
 
@@ -193,9 +197,9 @@ const methodLabel = (method: string) => {
   return "유사 사례 기반 추론";
 };
 
-const etaSourceLabel = (source?: string | null) => {
-  if (source === "kakao_directions") return "실시간 길찾기";
-  return "모델 추정";
+const routeAccuracyText = (source?: string | null) => {
+  if (source === "kakao_directions") return "도로 경로 기준";
+  return "거리 기반 예상";
 };
 
 export default function Home() {
@@ -637,22 +641,48 @@ export default function Home() {
                                   <p className="mt-1 text-sm text-slate-400">전화: {topHospital.phone}</p>
                                 )}
                               </div>
-                              <div className="grid min-w-48 grid-cols-2 gap-2 text-sm md:text-right">
-                                <div className="rounded-xl bg-slate-950/70 p-3">
-                                  <p className="text-xs text-slate-500">예상 이동</p>
-                                  <p className="mt-1 font-bold text-white">{topHospital.eta_min}분</p>
-                                  <p className="mt-1 text-[11px] text-slate-500">
-                                    {etaSourceLabel(topHospital.eta_source)}
-                                  </p>
+                              <div className="min-w-56 rounded-2xl bg-slate-950/80 p-4 text-sm">
+                                <div className="flex items-center justify-between gap-4">
+                                  <div>
+                                    <p className="text-xs text-slate-500">내 위치</p>
+                                    <p className="mt-1 font-semibold text-slate-200">출발</p>
+                                  </div>
+                                  <div className="h-px flex-1 bg-cyan-400/50" />
+                                  <div className="text-right">
+                                    <p className="text-xs text-slate-500">도착</p>
+                                    <p className="mt-1 font-semibold text-slate-200">{topHospital.hospital_name}</p>
+                                  </div>
                                 </div>
-                                <div className="rounded-xl bg-slate-950/70 p-3">
-                                  <p className="text-xs text-slate-500">거리</p>
-                                  <p className="mt-1 font-bold text-white">{topHospital.distance_km}km</p>
+
+                                <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                                  <div className="rounded-xl bg-slate-900 p-3">
+                                    <p className="text-xs text-slate-500">시간</p>
+                                    <p className="mt-1 font-bold text-white">{topHospital.eta_min}분</p>
+                                  </div>
+                                  <div className="rounded-xl bg-slate-900 p-3">
+                                    <p className="text-xs text-slate-500">거리</p>
+                                    <p className="mt-1 font-bold text-white">{topHospital.distance_km}km</p>
+                                  </div>
+                                  <div className="rounded-xl bg-slate-900 p-3">
+                                    <p className="text-xs text-slate-500">병상</p>
+                                    <p className="mt-1 font-bold text-white">{topHospital.available_beds}개</p>
+                                  </div>
                                 </div>
-                                <div className="col-span-2 rounded-xl bg-slate-950/70 p-3">
-                                  <p className="text-xs text-slate-500">응급 병상</p>
-                                  <p className="mt-1 font-bold text-white">{topHospital.available_beds}개</p>
-                                </div>
+
+                                <p className="mt-3 text-xs text-slate-500">
+                                  {routeAccuracyText(topHospital.eta_source)}
+                                </p>
+
+                                {topHospital.route_url && (
+                                  <a
+                                    href={topHospital.route_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="mt-4 block rounded-xl bg-cyan-400 px-4 py-3 text-center font-bold text-slate-950 transition hover:bg-cyan-300"
+                                  >
+                                    카카오맵에서 경로 보기
+                                  </a>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -674,11 +704,22 @@ export default function Home() {
                                   <div className="mt-3 space-y-1 text-sm text-slate-300">
                                     <p>주요 진료과: {shortDepartment(hospital.department)}</p>
                                     <p>
-                                      예상 이동시간: {hospital.eta_min}분 · {etaSourceLabel(hospital.eta_source)}
+                                      경로: {hospital.eta_min}분 · {hospital.distance_km}km ·{" "}
+                                      {routeAccuracyText(hospital.eta_source)}
                                     </p>
                                     <p>거리: {hospital.distance_km}km</p>
                                     <p>응급 병상: {hospital.available_beds}개</p>
                                   </div>
+                                  {hospital.route_url && (
+                                    <a
+                                      href={hospital.route_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="mt-3 inline-flex rounded-xl border border-cyan-400 px-3 py-2 text-xs font-semibold text-cyan-300 transition hover:bg-cyan-400 hover:text-slate-950"
+                                    >
+                                      경로 보기
+                                    </a>
+                                  )}
                                   {hospital.address && (
                                     <p className="mt-3 text-xs text-slate-500">{hospital.address}</p>
                                   )}

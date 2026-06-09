@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import urllib.parse
 from datetime import datetime
 
 import numpy as np
@@ -85,6 +86,25 @@ def _match_department_score(hospital_department: str, target_department: str) ->
             return 20
 
     return 0
+
+
+def _kakao_route_url(hospital_name: str, lat: float, lon: float) -> str:
+    destination = urllib.parse.quote(f"{hospital_name},{lat},{lon}", safe=",")
+    return f"https://map.kakao.com/link/to/{destination}"
+
+
+def _kakao_route_app_url(
+    origin_lat: float,
+    origin_lon: float,
+    destination_lat: float,
+    destination_lon: float,
+) -> str:
+    return (
+        "kakaomap://route"
+        f"?sp={origin_lat},{origin_lon}"
+        f"&ep={destination_lat},{destination_lon}"
+        "&by=CAR"
+    )
 
 
 def recommend_hospitals(
@@ -183,8 +203,6 @@ def recommend_hospitals(
         if int(row.get("department_score", 0)) >= 20:
             reason_parts.append(f"{department} 관련 진료과 매칭")
         reason_parts.append(f"예상 이동시간 {int(row['eta_min'])}분")
-        if str(row.get("eta_source", "")) == "kakao_directions":
-            reason_parts.append("실시간 길찾기 반영")
 
         recommendations.append(
             RecommendedHospital(
@@ -199,6 +217,19 @@ def recommend_hospitals(
                 address=str(row.get("address", "")),
                 phone=str(row.get("phone", "")),
                 distance_km=round(float(row["distance_km"]), 2),
+                lat=round(float(row["lat"]), 7),
+                lon=round(float(row["lon"]), 7),
+                route_url=_kakao_route_url(
+                    hospital_name=str(row["hospital_name"]),
+                    lat=float(row["lat"]),
+                    lon=float(row["lon"]),
+                ),
+                route_app_url=_kakao_route_app_url(
+                    origin_lat=float(user_lat),
+                    origin_lon=float(user_lon),
+                    destination_lat=float(row["lat"]),
+                    destination_lon=float(row["lon"]),
+                ),
                 is_emergency=int(row.get("is_emergency", 0)),
             )
         )
