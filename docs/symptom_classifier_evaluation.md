@@ -9,12 +9,12 @@ The emergency triage rule data is not used as the disease classifier. It is used
 ## Dataset
 
 - Source: `data/processed/naver_kin_symptom_cases.csv`
-- Rows used: 2700
+- Rows used: 3139
 - Input features: `cleaned_text` + `symptom_keywords`
 - Targets:
-  - `symptom_group`: 9 classes
-  - `department`: 8 classes
-  - `suspected_disease`: 27 classes
+  - `symptom_group`: 15 classes
+  - `department`: 14 classes
+  - `suspected_disease`: 76 classes
 - Train/test split: 80% / 20%, stratified by each target
 
 ## Model Comparison
@@ -28,26 +28,26 @@ Compared models:
 
 | Target | Model | Accuracy | Macro F1 | Weighted F1 | Classes |
 | --- | --- | --- | --- | --- | --- |
-| symptom_group | baseline_most_frequent | 0.2963 | 0.0508 | 0.1354 | 9 |
-| symptom_group | word_tfidf_logreg | 0.9870 | 0.9885 | 0.9871 | 9 |
-| symptom_group | char_tfidf_logreg | 0.9870 | 0.9877 | 0.9871 | 9 |
-| symptom_group | char_tfidf_linear_svc | 0.9926 | 0.9926 | 0.9926 | 9 |
-| department | baseline_most_frequent | 0.4815 | 0.0812 | 0.3130 | 8 |
-| department | word_tfidf_logreg | 0.9889 | 0.9905 | 0.9890 | 8 |
-| department | char_tfidf_logreg | 0.9926 | 0.9939 | 0.9926 | 8 |
-| department | char_tfidf_linear_svc | 0.9981 | 0.9987 | 0.9982 | 8 |
-| suspected_disease | baseline_most_frequent | 0.0370 | 0.0026 | 0.0026 | 27 |
-| suspected_disease | word_tfidf_logreg | 0.9870 | 0.9866 | 0.9866 | 27 |
-| suspected_disease | char_tfidf_logreg | 0.9889 | 0.9888 | 0.9888 | 27 |
-| suspected_disease | char_tfidf_linear_svc | 0.9907 | 0.9907 | 0.9907 | 27 |
+| symptom_group | baseline_most_frequent | 0.2723 | 0.0285 | 0.1166 | 15 |
+| symptom_group | word_tfidf_logreg | 0.9618 | 0.9350 | 0.9638 | 15 |
+| symptom_group | char_tfidf_logreg | 0.9427 | 0.8906 | 0.9494 | 15 |
+| symptom_group | char_tfidf_linear_svc | 0.9809 | 0.9700 | 0.9809 | 15 |
+| department | baseline_most_frequent | 0.4793 | 0.0463 | 0.3106 | 14 |
+| department | word_tfidf_logreg | 0.9570 | 0.9180 | 0.9616 | 14 |
+| department | char_tfidf_logreg | 0.9379 | 0.8603 | 0.9452 | 14 |
+| department | char_tfidf_linear_svc | 0.9841 | 0.9680 | 0.9845 | 14 |
+| suspected_disease | baseline_most_frequent | 0.0350 | 0.0009 | 0.0024 | 76 |
+| suspected_disease | word_tfidf_logreg | 0.9793 | 0.9450 | 0.9797 | 76 |
+| suspected_disease | char_tfidf_logreg | 0.9745 | 0.9050 | 0.9730 | 76 |
+| suspected_disease | char_tfidf_linear_svc | 0.9857 | 0.9410 | 0.9851 | 76 |
 
 ## Best Model By Target
 
 | Target | Best Model | Accuracy | Macro F1 | Weighted F1 |
 | --- | --- | --- | --- | --- |
-| symptom_group | char_tfidf_linear_svc | 0.9926 | 0.9926 | 0.9926 |
-| department | char_tfidf_linear_svc | 0.9981 | 0.9987 | 0.9982 |
-| suspected_disease | char_tfidf_linear_svc | 0.9907 | 0.9907 | 0.9907 |
+| symptom_group | char_tfidf_linear_svc | 0.9809 | 0.9700 | 0.9809 |
+| department | char_tfidf_linear_svc | 0.9841 | 0.9680 | 0.9845 |
+| suspected_disease | word_tfidf_logreg | 0.9793 | 0.9450 | 0.9797 |
 
 ## Data Understanding
 
@@ -55,33 +55,50 @@ Compared models:
 
 | Symptom Group | Rows |
 | --- | --- |
-| toxic | 800 |
-| trauma | 400 |
+| toxic | 856 |
+| trauma | 472 |
+| respiratory | 355 |
+| cardio | 324 |
 | bleeding | 300 |
-| cardio | 300 |
-| respiratory | 300 |
-| allergy | 200 |
-| abdominal | 200 |
-| eye | 100 |
-| neuro | 100 |
+| abdominal | 240 |
+| allergy | 216 |
+| neuro | 132 |
+| eye | 124 |
+| urology | 24 |
+| pediatric | 24 |
+| obgy | 24 |
+| psychiatric | 24 |
+| foreign_body | 16 |
+| infection | 8 |
 
 ### Department Distribution
 
 | Department | Rows |
 | --- | --- |
-| 응급의학과 | 1300 |
-| 정형외과 | 300 |
-| 호흡기내과 | 300 |
-| 심장내과 | 200 |
-| 알레르기내과 | 200 |
-| 소화기내과 | 200 |
-| 안과 | 100 |
-| 신경과 | 100 |
+| 응급의학과 | 1507 |
+| 호흡기내과 | 332 |
+| 정형외과 | 308 |
+| 소화기내과 | 224 |
+| 알레르기내과 | 216 |
+| 심장내과 | 208 |
+| 안과 | 124 |
+| 신경과 | 116 |
+| 비뇨의학과 | 24 |
+| 소아청소년과 | 24 |
+| 산부인과 | 24 |
+| 정신건강의학과 | 16 |
+| 외과 | 8 |
+| 이비인후과 | 8 |
 
 ### Suspected Disease Distribution
 
 | Suspected Disease | Rows |
 | --- | --- |
+| 아나필락시스 | 108 |
+| 열사병 | 108 |
+| 일산화탄소중독 | 108 |
+| 저체온증 | 108 |
+| 화학물질중독 | 108 |
 | 간부전 | 100 |
 | 객혈 | 100 |
 | 골절 | 100 |
@@ -96,19 +113,63 @@ Compared models:
 | 부정맥 | 100 |
 | 신부전 | 100 |
 | 심정지 | 100 |
-| 아나필락시스 | 100 |
 | 약물중독 | 100 |
-| 열사병 | 100 |
 | 위장관출혈 | 100 |
 | 익수 | 100 |
-| 일산화탄소중독 | 100 |
 | 장폐색 | 100 |
-| 저체온증 | 100 |
 | 전기손상 | 100 |
 | 질식 | 100 |
 | 탈구 | 100 |
 | 화상 | 100 |
-| 화학물질중독 | 100 |
+| 고열 동반 호흡곤란 | 15 |
+| 뇌진탕 의심 두부손상 | 8 |
+| 외상성 뇌손상 | 8 |
+| 경추손상 | 8 |
+| 척추손상 | 8 |
+| 다발성외상 | 8 |
+| 개방성 골절 | 8 |
+| 절단손상 | 8 |
+| 압궤손상 | 8 |
+| 안면외상 | 8 |
+| 폐렴 의심 고열 | 8 |
+| 천식 악화 | 8 |
+| COPD 급성악화 | 8 |
+| 기흉 | 8 |
+| 폐색전증 | 8 |
+| 급성 심부전 | 8 |
+| 대동맥박리 | 8 |
+| 고혈압성 응급 | 8 |
+| 실신 | 8 |
+| 경련 발작 | 8 |
+| 수막염 의심 | 8 |
+| 편두통 위험징후 | 8 |
+| 급성 충수염 | 8 |
+| 담낭염 | 8 |
+| 요로결석 | 8 |
+| 급성 신우신염 | 8 |
+| 고환염전 | 8 |
+| 노로바이러스 의심 급성 위장염 | 8 |
+| 식중독 | 8 |
+| 중증 탈수 | 8 |
+| 저혈당 | 8 |
+| 고혈당성 응급 | 8 |
+| 패혈증 의심 | 8 |
+| 열성경련 | 8 |
+| 영아 호흡곤란 | 8 |
+| 소아 탈수 | 8 |
+| 임신 중 복통출혈 | 8 |
+| 자궁외임신 의심 | 8 |
+| 분만 임박 | 8 |
+| 자살위험 | 8 |
+| 공황발작 | 8 |
+| 섬망 의심 | 8 |
+| 눈 화학손상 | 8 |
+| 망막박리 의심 | 8 |
+| 각막손상 | 8 |
+| 기도 이물 | 8 |
+| 식도 이물 | 8 |
+| 혈관부종 | 8 |
+| 알코올중독 | 8 |
 
 ## System Interpretation
 

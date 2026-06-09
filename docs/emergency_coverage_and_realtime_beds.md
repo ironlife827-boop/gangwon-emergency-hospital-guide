@@ -28,6 +28,38 @@ Run:
 python -X utf8 data_pipeline/symptom_model/expand_emergency_coverage.py
 ```
 
+## Naver Knowledge iN Recrawl And Retraining
+
+The expanded model is now trained from a refreshed dataset built from `naver_crawl_query_plan.csv`.
+
+The crawler:
+
+- reads disease labels and search queries from `data/processed/naver_crawl_query_plan.csv`
+- searches Naver Knowledge iN per `suspected_disease`
+- filters out non-medical contexts such as pets, dreams, legal disputes, ads, and unrelated cosmetic/lifestyle posts
+- keeps disease-specific labels from `emergency_disease_label_master.csv`
+- writes raw, filtered, and combined CSV outputs
+- can replace the training CSV after creating a local backup
+
+Run:
+
+```bash
+python -X utf8 data_pipeline/symptom_model/crawl_naver_kin_from_query_plan.py --target-per-label 8 --queries-per-label 5 --pages-per-query 2 --delay-seconds 0.25 --fetch-detail --update-training-csv
+python -X utf8 data_pipeline/symptom_model/train_symptom_classifier.py
+python -X utf8 data_pipeline/symptom_model/evaluate_symptom_classifier.py
+python -X utf8 data_pipeline/symptom_model/smoke_test_triage_quality.py
+```
+
+Latest recrawl result:
+
+- Raw candidate rows: 450
+- Filtered training rows: 432
+- Excluded non-medical/bad-context rows: 18
+- Covered recrawl labels: 54
+- Added rows per recrawl label: 8
+- Final training rows: 3139
+- Final `suspected_disease` classes: 76
+
 ## Realtime Bed API
 
 The backend now tries to fetch realtime emergency bed counts from the National Emergency Medical Center public data API before falling back to the static CSV.
