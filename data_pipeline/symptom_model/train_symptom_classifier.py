@@ -11,7 +11,9 @@ from sklearn.pipeline import Pipeline
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DATA_PATH = PROJECT_ROOT / "data" / "processed" / "naver_kin_symptom_cases.csv"
+BASE_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "naver_kin_symptom_cases.csv"
+MAPPED_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "naver_kin_symptom_cases_mapped.csv"
+DATA_PATH = MAPPED_DATA_PATH if MAPPED_DATA_PATH.exists() else BASE_DATA_PATH
 MODEL_DIR = PROJECT_ROOT / "models"
 MODEL_PATH = MODEL_DIR / "symptom_classifier.pkl"
 
@@ -35,6 +37,11 @@ def load_dataset() -> pd.DataFrame:
     for column in required_columns:
         df[column] = df[column].fillna("").astype(str)
 
+    if "disease_id" in df.columns:
+        df["disease_id"] = df["disease_id"].fillna("").astype(str)
+    if "canonical_disease_name" in df.columns:
+        df["canonical_disease_name"] = df["canonical_disease_name"].fillna("").astype(str)
+
     df["input_text"] = (
         df["cleaned_text"]
         + " "
@@ -50,7 +57,7 @@ def train_single_label_model(df: pd.DataFrame, target_column: str) -> Pipeline:
     X = df["input_text"]
     y = df[target_column]
 
-    if target_column == "suspected_disease":
+    if target_column in {"suspected_disease", "disease_id"}:
         vectorizer = TfidfVectorizer(
             analyzer="word",
             ngram_range=(1, 2),
@@ -113,15 +120,19 @@ def main():
     symptom_group_model = train_single_label_model(df, "symptom_group")
     department_model = train_single_label_model(df, "department")
     disease_model = train_single_label_model(df, "suspected_disease")
+    disease_id_model = None
+    if "disease_id" in df.columns and df["disease_id"].str.len().gt(0).all():
+        disease_id_model = train_single_label_model(df, "disease_id")
 
     payload = {
         "symptom_group_model": symptom_group_model,
         "department_model": department_model,
         "disease_model": disease_model,
+        "disease_id_model": disease_id_model,
         "metadata": {
             "train_rows": len(df),
-            "source": "naver_kin_symptom_cases.csv",
-            "model_type": "TF-IDF + LogisticRegression; suspected_disease uses word 1-2gram, other targets use char_wb 2-5gram",
+            "source": DATA_PATH.name,
+            "model_type": "TF-IDF + LogisticRegression; disease_id/suspected_disease use word 1-2gram, other targets use char_wb 2-5gram",
         },
     }
 

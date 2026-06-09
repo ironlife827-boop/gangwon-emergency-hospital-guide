@@ -45,12 +45,12 @@ CASES = [
     },
     {
         "symptom": "아이 열이 39도이고 경련했어요",
-        "expected": {"소아 고열 경련", "열사병"},
+        "expected": {"소아 고열 경련", "열성경련", "열사병"},
         "required_question_terms": ["경련", "의식"],
     },
     {
         "symptom": "토하고 설사하고 탈수 같아요",
-        "expected": {"탈수"},
+        "expected": {"탈수", "중증 탈수"},
         "required_question_terms": ["소변", "설사"],
         "forbidden_question_terms": ["심정지", "맥박"],
     },
@@ -170,6 +170,10 @@ def main() -> None:
             failures.append(
                 f"{case['symptom']} -> {disease}, expected one of {sorted(case['expected'])}"
             )
+        if not response.get("disease_id"):
+            failures.append(f"{case['symptom']} missing disease_id")
+        if not response.get("disease_candidates"):
+            failures.append(f"{case['symptom']} missing disease candidates")
 
         for term in case.get("required_question_terms", []):
             if term not in questions:
@@ -186,6 +190,8 @@ def main() -> None:
         disease = response["suspected_disease"]
         if disease not in expected:
             failures.append(f"{label}: {symptom} -> {disease}, expected one of {sorted(expected)}")
+        if not response.get("disease_id"):
+            failures.append(f"{label}: {symptom} missing disease_id")
 
         print(f"PASS common table {label} -> {disease}")
 
@@ -206,6 +212,8 @@ def main() -> None:
 
     if cold_result.suspected_disease != "감기":
         failures.append(f"common cold final disease -> {cold_result.suspected_disease}")
+    if not cold_result.disease_id:
+        failures.append("common cold final triage missing disease_id")
     if cold_result.severity_level != 5:
         failures.append(f"common cold severity -> {cold_result.severity_level}")
     if not cold_result.hospitals or int(cold_result.hospitals[0].is_emergency or 0) != 0:

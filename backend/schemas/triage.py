@@ -14,9 +14,17 @@ class SimilarCase(BaseModel):
     symptom_group: str
     department: str
     suspected_disease: str
+    disease_id: str | None = None
+    canonical_disease_name: str | None = None
     severity_level: int
     similarity: float
     source_url: str | None = None
+
+
+class DiseaseCandidate(BaseModel):
+    disease_id: str
+    disease_name: str
+    confidence: float
 
 
 class AnalysisEvidence(BaseModel):
@@ -40,6 +48,9 @@ class TriageQuestionResponse(BaseModel):
     symptom_group: str
     department: str
     suspected_disease: str
+    disease_id: str = ""
+    canonical_disease_name: str = ""
+    disease_candidates: list[DiseaseCandidate] = Field(default_factory=list)
     need_followup: bool
     questions: list[TriageQuestion]
     similar_cases: list[SimilarCase] = []
@@ -90,6 +101,9 @@ class TriageAnalyzeResponse(BaseModel):
     symptom_group: str
     department: str
     suspected_disease: str
+    disease_id: str = ""
+    canonical_disease_name: str = ""
+    disease_candidates: list[DiseaseCandidate] = Field(default_factory=list)
     summary: str
     evidence: AnalysisEvidence
     similar_cases: list[SimilarCase] = []

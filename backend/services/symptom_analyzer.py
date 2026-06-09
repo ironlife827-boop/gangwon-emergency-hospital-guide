@@ -5,7 +5,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 from schemas.triage import SimilarCase
-from services.data_loader import load_naver_cases, load_symptom_classifier
+from services.data_loader import load_disease_master, load_naver_cases, load_symptom_classifier
 
 
 _vectorizer: TfidfVectorizer | None = None
@@ -316,6 +316,13 @@ def _majority_value(rows: pd.DataFrame, column: str, fallback: str = "기타") -
     return Counter(values).most_common(1)[0][0]
 
 
+def _first_value(rows: pd.DataFrame, column: str, fallback: str = "") -> str:
+    if column not in rows.columns:
+        return fallback
+    values = [str(value).strip() for value in rows[column].tolist() if str(value).strip()]
+    return values[0] if values else fallback
+
+
 def _normalize_text(value: str) -> str:
     return str(value).lower().replace(" ", "").replace(",", "").replace(".", "")
 
@@ -389,14 +396,60 @@ def _find_disease_evidence_rule(symptom: str) -> dict | None:
 
 
 def _metadata_for_disease(cases: pd.DataFrame, disease: str) -> dict | None:
-    disease_rows = cases[cases["suspected_disease"].astype(str).eq(str(disease))]
+    disease_rows = cases[
+        cases["suspected_disease"].astype(str).eq(str(disease))
+        | cases.get("canonical_disease_name", pd.Series("", index=cases.index)).astype(str).eq(str(disease))
+    ]
     if disease_rows.empty:
-        return SAFETY_ANCHOR_METADATA.get(str(disease))
+        master = load_disease_master()
+        if not master.empty:
+            master_rows = master[
+                master["disease_name"].astype(str).eq(str(disease))
+                | master["aliases"].astype(str).str.split(";").apply(lambda aliases: str(disease) in aliases)
+            ]
+            if not master_rows.empty:
+                row = master_rows.iloc[0]
+                return {
+                    "symptom_group": str(row["symptom_group"]),
+                    "department": str(row["department"]),
+                    "suspected_disease": str(row["disease_name"]),
+                    "disease_id": str(row["disease_id"]),
+                    "canonical_disease_name": str(row["disease_name"]),
+                }
+
+        safety_metadata = SAFETY_ANCHOR_METADATA.get(str(disease))
+        if safety_metadata is None:
+            return None
+        return {**safety_metadata, "disease_id": "", "canonical_disease_name": str(disease)}
 
     return {
         "symptom_group": _majority_value(disease_rows, "symptom_group"),
         "department": _majority_value(disease_rows, "department"),
         "suspected_disease": str(disease),
+        "disease_id": _first_value(disease_rows, "disease_id"),
+        "canonical_disease_name": _first_value(disease_rows, "canonical_disease_name", str(disease)),
+    }
+
+
+def _metadata_for_disease_id(disease_id: str) -> dict | None:
+    if not disease_id:
+        return None
+
+    master = load_disease_master()
+    if master.empty:
+        return None
+
+    rows = master[master["disease_id"].astype(str).eq(str(disease_id))]
+    if rows.empty:
+        return None
+
+    row = rows.iloc[0]
+    return {
+        "symptom_group": str(row["symptom_group"]),
+        "department": str(row["department"]),
+        "suspected_disease": str(row["disease_name"]),
+        "disease_id": str(row["disease_id"]),
+        "canonical_disease_name": str(row["disease_name"]),
     }
 
 
@@ -409,23 +462,126 @@ def _predict_with_trained_classifier(symptom: str) -> dict | None:
         symptom_group_model = classifier["symptom_group_model"]
         department_model = classifier["department_model"]
         disease_model = classifier["disease_model"]
+        disease_id_model = classifier.get("disease_id_model")
 
         symptom_group = str(symptom_group_model.predict([symptom])[0])
         department = str(department_model.predict([symptom])[0])
         suspected_disease = str(disease_model.predict([symptom])[0])
+        disease_id = ""
+        canonical_disease_name = suspected_disease
 
         disease_confidence = None
-        if hasattr(disease_model, "predict_proba"):
-            disease_confidence = float(max(disease_model.predict_proba([symptom])[0]))
+        disease_candidates = []
+
+        if disease_id_model is not None:
+            disease_id = str(disease_id_model.predict([symptom])[0])
+            disease_metadata = _metadata_for_disease_id(disease_id)
+            if disease_metadata is not None:
+                suspected_disease = disease_metadata["suspected_disease"]
+                canonical_disease_name = disease_metadata["canonical_disease_name"]
+
+        probability_model = disease_id_model if disease_id_model is not None else disease_model
+        if hasattr(probability_model, "predict_proba"):
+            probabilities = probability_model.predict_proba([symptom])[0]
+            disease_confidence = float(max(probabilities))
+            ranked = sorted(
+                zip(probability_model.classes_, probabilities),
+                key=lambda item: float(item[1]),
+                reverse=True,
+            )[:3]
+            for label, score in ranked:
+                if disease_id_model is not None:
+                    metadata = _metadata_for_disease_id(str(label)) or {}
+                    disease_candidates.append(
+                        {
+                            "disease_id": str(label),
+                            "suspected_disease": str(metadata.get("suspected_disease", "")),
+                            "canonical_disease_name": str(metadata.get("canonical_disease_name", "")),
+                            "confidence": float(score),
+                        }
+                    )
+                else:
+                    disease_candidates.append(
+                        {"suspected_disease": str(label), "confidence": float(score)}
+                    )
 
         return {
             "symptom_group": symptom_group,
             "department": department,
             "suspected_disease": suspected_disease,
+            "disease_id": disease_id,
+            "canonical_disease_name": canonical_disease_name,
             "disease_confidence": disease_confidence,
+            "disease_candidates": disease_candidates,
         }
     except Exception:
         return None
+
+
+def _build_disease_candidates(
+    cases: pd.DataFrame,
+    raw_candidates: list[dict],
+    predicted: dict,
+) -> list[dict]:
+    candidates: list[dict] = []
+    seen_ids: set[str] = set()
+    seen_names: set[str] = set()
+
+    primary_id = str(predicted.get("disease_id", ""))
+    primary_name = str(predicted.get("canonical_disease_name") or predicted.get("suspected_disease", ""))
+    primary_confidence = 1.0
+    for item in raw_candidates:
+        if primary_id and str(item.get("disease_id", "")) == primary_id:
+            primary_confidence = round(float(item.get("confidence", 1.0)), 4)
+            break
+        if primary_name and str(item.get("canonical_disease_name") or item.get("suspected_disease", "")) == primary_name:
+            primary_confidence = round(float(item.get("confidence", 1.0)), 4)
+            break
+    if primary_name:
+        candidates.append(
+            {
+                "disease_id": primary_id,
+                "disease_name": primary_name,
+                "confidence": primary_confidence,
+            }
+        )
+        if primary_id:
+            seen_ids.add(primary_id)
+        seen_names.add(primary_name)
+
+    for item in raw_candidates:
+        disease = str(item.get("suspected_disease", ""))
+        disease_id = str(item.get("disease_id", ""))
+        metadata = _metadata_for_disease_id(disease_id) if disease_id else None
+        metadata = metadata or _metadata_for_disease(cases, disease) or {}
+        disease_id = str(metadata.get("disease_id", disease_id))
+        disease_name = str(
+            metadata.get("canonical_disease_name")
+            or item.get("canonical_disease_name")
+            or metadata.get("suspected_disease")
+            or disease
+        )
+
+        if disease_id and disease_id in seen_ids:
+            continue
+        if disease_name in seen_names:
+            continue
+
+        candidates.append(
+            {
+                "disease_id": disease_id,
+                "disease_name": disease_name,
+                "confidence": round(float(item.get("confidence", 0)), 4),
+            }
+        )
+        if disease_id:
+            seen_ids.add(disease_id)
+        seen_names.add(disease_name)
+
+        if len(candidates) >= 3:
+            break
+
+    return candidates[:3]
 
 
 def _build_similar_cases(top_rows: pd.DataFrame) -> list[SimilarCase]:
@@ -439,6 +595,8 @@ def _build_similar_cases(top_rows: pd.DataFrame) -> list[SimilarCase]:
                 symptom_group=str(row["symptom_group"]),
                 department=str(row["department"]),
                 suspected_disease=str(row["suspected_disease"]),
+                disease_id=str(row.get("disease_id", "")),
+                canonical_disease_name=str(row.get("canonical_disease_name", "")),
                 severity_level=int(row["severity_level"]),
                 similarity=round(float(row["similarity"]), 4),
                 source_url=str(row.get("source_url", "")),
@@ -546,13 +704,24 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
             "symptom_group": trained_prediction["symptom_group"],
             "department": trained_prediction["department"],
             "suspected_disease": trained_prediction["suspected_disease"],
+            "disease_id": trained_prediction.get("disease_id", ""),
+            "canonical_disease_name": trained_prediction.get(
+                "canonical_disease_name",
+                trained_prediction["suspected_disease"],
+            ),
         }
         disease_metadata = _metadata_for_disease(cases, predicted["suspected_disease"])
         if disease_metadata is not None:
             predicted["symptom_group"] = disease_metadata["symptom_group"]
             predicted["department"] = disease_metadata["department"]
+            predicted["disease_id"] = disease_metadata.get("disease_id", "")
+            predicted["canonical_disease_name"] = disease_metadata.get(
+                "canonical_disease_name",
+                predicted["suspected_disease"],
+            )
         matched_by = "trained_classifier"
         disease_confidence = trained_prediction.get("disease_confidence")
+        raw_disease_candidates = trained_prediction.get("disease_candidates", [])
     else:
         # 모델이 없거나 로딩 실패한 경우에만 유사사례 fallback
         all_indices = sims.argsort()[::-1][:top_k]
@@ -563,9 +732,12 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
             "symptom_group": _majority_value(all_top_rows, "symptom_group", "etc"),
             "department": _majority_value(all_top_rows, "department", "내과"),
             "suspected_disease": _majority_value(all_top_rows, "suspected_disease", "일반 증상"),
+            "disease_id": _first_value(all_top_rows, "disease_id"),
+            "canonical_disease_name": _first_value(all_top_rows, "canonical_disease_name", "일반 증상"),
         }
         matched_by = "similarity"
         disease_confidence = None
+        raw_disease_candidates = []
 
     risk_rule = _find_emergency_risk_rule(symptom)
     anchor_rule = _find_disease_anchor_rule(symptom)
@@ -587,10 +759,10 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
                 matched_by = "trained_classifier_evidence"
 
     if risk_rule is not None and (disease_confidence is None or disease_confidence < 0.5):
-        anchored_prediction = _metadata_for_disease(cases, str(risk_rule["risk_disease"]))
-        if anchored_prediction is not None:
-            predicted = anchored_prediction
-            matched_by = "trained_classifier_anchor"
+            anchored_prediction = _metadata_for_disease(cases, str(risk_rule["risk_disease"]))
+            if anchored_prediction is not None:
+                predicted = anchored_prediction
+                matched_by = "trained_classifier_anchor"
 
     if anchor_rule is not None:
         should_anchor = (
@@ -603,6 +775,8 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
             if anchored_prediction is not None:
                 predicted = anchored_prediction
                 matched_by = "trained_classifier_anchor"
+
+    disease_candidates = _build_disease_candidates(cases, raw_disease_candidates, predicted)
 
     top_rows, search_scope = _select_similar_case_rows(
         cases=cases,
@@ -638,6 +812,9 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
         "symptom_group": predicted["symptom_group"],
         "department": predicted["department"],
         "suspected_disease": predicted["suspected_disease"],
+        "disease_id": predicted.get("disease_id", ""),
+        "canonical_disease_name": predicted.get("canonical_disease_name", predicted["suspected_disease"]),
+        "disease_candidates": disease_candidates,
         "naver_severity_level": naver_severity,
         "max_similarity": round(max_similarity, 4),
         "similar_cases": similar_cases,

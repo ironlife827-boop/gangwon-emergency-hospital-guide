@@ -153,15 +153,18 @@ def _select_fallback_triage_questions(
 
 def _score_question(row, symptom: str, analysis: dict) -> float:
     disease = str(analysis.get("suspected_disease", ""))
+    disease_id = str(analysis.get("disease_id", ""))
     group = str(analysis.get("symptom_group", ""))
 
     question_disease = str(row.get("suspected_disease", ""))
+    question_disease_id = str(row.get("disease_id", ""))
     question_group = str(row.get("symptom_group", ""))
 
     risk_score = float(row.get("risk_score", 0))
     importance = float(row.get("importance", 0))
     keywords = str(row.get("positive_keywords", ""))
 
+    disease_id_match = 1 if disease_id and question_disease_id == disease_id else 0
     disease_match = 1 if question_disease == disease else 0
     group_match = 1 if question_group == group else 0
     already_covered = _already_covered_by_user_input(symptom, keywords)
@@ -170,7 +173,8 @@ def _score_question(row, symptom: str, analysis: dict) -> float:
     already_mentioned_penalty = 12 if already_covered else 0
 
     score = (
-        disease_match * 40
+        disease_id_match * 45
+        + disease_match * 40
         + group_match * 5
         + risk_score * 2.5
         + importance * 2
@@ -226,11 +230,20 @@ def _select_dynamic_questions(symptom: str, analysis: dict, limit: int = 4) -> l
 
     if not disease_questions.empty:
         disease = str(analysis.get("suspected_disease", ""))
+        disease_id = str(analysis.get("disease_id", ""))
         symptom_group = str(analysis.get("symptom_group", ""))
 
-        disease_rows = disease_questions[
-            disease_questions["suspected_disease"].astype(str).eq(disease)
-        ].copy()
+        if disease_id and "disease_id" in disease_questions.columns:
+            disease_rows = disease_questions[
+                disease_questions["disease_id"].astype(str).eq(disease_id)
+            ].copy()
+        else:
+            disease_rows = pd.DataFrame()
+
+        if disease_rows.empty:
+            disease_rows = disease_questions[
+                disease_questions["suspected_disease"].astype(str).eq(disease)
+            ].copy()
 
         if not disease_rows.empty:
             candidate_rows = disease_rows
@@ -350,6 +363,9 @@ def create_data_driven_questions(symptom: str) -> dict:
         "symptom_group": analysis["symptom_group"],
         "department": analysis["department"],
         "suspected_disease": analysis["suspected_disease"],
+        "disease_id": analysis.get("disease_id", ""),
+        "canonical_disease_name": analysis.get("canonical_disease_name", analysis["suspected_disease"]),
+        "disease_candidates": analysis.get("disease_candidates", []),
         "need_followup": len(questions) > 0,
         "questions": questions,
         "similar_cases": analysis["similar_cases"],
@@ -458,6 +474,12 @@ def analyze_data_driven_triage(payload: TriageAnalyzeRequest) -> TriageAnalyzeRe
         symptom_group=symptom_analysis["symptom_group"],
         department=symptom_analysis["department"],
         suspected_disease=symptom_analysis["suspected_disease"],
+        disease_id=symptom_analysis.get("disease_id", ""),
+        canonical_disease_name=symptom_analysis.get(
+            "canonical_disease_name",
+            symptom_analysis["suspected_disease"],
+        ),
+        disease_candidates=symptom_analysis.get("disease_candidates", []),
         summary=summary,
         evidence=evidence,
         similar_cases=symptom_analysis["similar_cases"],
