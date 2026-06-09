@@ -1,0 +1,13 @@
+﻿target,model,accuracy,macro_f1,weighted_f1,train_rows,test_rows,classes
+symptom_group,baseline_most_frequent,0.2963,0.0508,0.1354,2160,540,9
+symptom_group,word_tfidf_logreg,0.987,0.9885,0.9871,2160,540,9
+symptom_group,char_tfidf_logreg,0.987,0.9877,0.9871,2160,540,9
+symptom_group,char_tfidf_linear_svc,0.9926,0.9926,0.9926,2160,540,9
+department,baseline_most_frequent,0.4815,0.0812,0.313,2160,540,8
+department,word_tfidf_logreg,0.9889,0.9905,0.989,2160,540,8
+department,char_tfidf_logreg,0.9926,0.9939,0.9926,2160,540,8
+department,char_tfidf_linear_svc,0.9981,0.9987,0.9982,2160,540,8
+suspected_disease,baseline_most_frequent,0.037,0.0026,0.0026,2160,540,27
+suspected_disease,word_tfidf_logreg,0.987,0.9866,0.9866,2160,540,27
+suspected_disease,char_tfidf_logreg,0.9889,0.9888,0.9888,2160,540,27
+suspected_disease,char_tfidf_linear_svc,0.9907,0.9907,0.9907,2160,540,27

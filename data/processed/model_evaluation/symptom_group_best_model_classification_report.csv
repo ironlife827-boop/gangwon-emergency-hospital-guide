@@ -1,0 +1,12 @@
+﻿label,precision,recall,f1_score,support
+abdominal,1.0,1.0,1.0,40
+allergy,1.0,1.0,1.0,40
+bleeding,1.0,1.0,1.0,60
+cardio,0.9516,0.9833,0.9672,60
+eye,1.0,1.0,1.0,20
+neuro,1.0,1.0,1.0,20
+respiratory,0.9828,0.95,0.9661,60
+toxic,1.0,1.0,1.0,160
+trauma,1.0,1.0,1.0,80
+macro avg,0.9927,0.9926,0.9926,540
+weighted avg,0.9927,0.9926,0.9926,540
