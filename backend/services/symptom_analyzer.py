@@ -118,6 +118,16 @@ DISEASE_ANCHOR_RULES = [
         ],
     },
     {
+        "disease": "뇌진탕 의심 두부손상",
+        "risk_severity_level": 5,
+        "priority": 40,
+        "keyword_groups": [
+            ["머리", "두부", "뒤통수", "이마"],
+            ["맞", "부딪", "떨어", "넘어", "사다리", "충격", "외상"],
+            ["기절", "의식", "잠깐", "멍", "토", "구토", "어지럼"],
+        ],
+    },
+    {
         "disease": "소아 고열 경련",
         "risk_severity_level": 5,
         "keyword_groups": [
@@ -199,6 +209,11 @@ SAFETY_ANCHOR_METADATA = {
         "symptom_group": "abdominal",
         "department": "소화기내과",
         "suspected_disease": "노로바이러스 의심 급성 위장염",
+    },
+    "뇌진탕 의심 두부손상": {
+        "symptom_group": "trauma",
+        "department": "응급의학과",
+        "suspected_disease": "뇌진탕 의심 두부손상",
     },
 }
 

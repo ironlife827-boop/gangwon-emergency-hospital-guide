@@ -65,6 +65,12 @@ CASES = [
         "required_question_terms": ["소변", "설사"],
         "forbidden_question_terms": ["물에 빠", "익수", "강아지", "고양이"],
     },
+    {
+        "symptom": "작업하다가 사다리에 머리를 맞아 3초간 기절한 상태다",
+        "expected": {"뇌진탕 의심 두부손상"},
+        "required_question_terms": ["두통", "감각"],
+        "forbidden_question_terms": ["심정지", "맥박", "숨 쉬지"],
+    },
 ]
 
 
