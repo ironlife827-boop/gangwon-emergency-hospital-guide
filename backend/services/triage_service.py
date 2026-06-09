@@ -10,7 +10,6 @@ from schemas.triage import (
 )
 from services.data_loader import (
     load_disease_questions,
-    load_severity_model,
     load_triage_rules,
 )
 from services.recommendation_service import recommend_hospitals
@@ -325,15 +324,12 @@ def _build_evidence(analysis: dict) -> AnalysisEvidence:
 def _build_final_symptom_summary(symptom: str, answers) -> str:
     positives: list[str] = []
     uncertain: list[str] = []
-    negatives: list[str] = []
 
     for item in answers:
         if item.answer == "예":
             positives.append(item.question)
         elif item.answer == "잘 모르겠음":
             uncertain.append(item.question)
-        elif item.answer == "아니오":
-            negatives.append(item.question)
 
     parts = [f"사용자 최초 증상: {symptom}"]
 
@@ -341,8 +337,6 @@ def _build_final_symptom_summary(symptom: str, answers) -> str:
         parts.append("추가로 확인된 증상: " + " / ".join(positives))
     if uncertain:
         parts.append("불확실한 증상: " + " / ".join(uncertain))
-    if negatives:
-        parts.append("부정한 증상: " + " / ".join(negatives))
 
     return " ".join(parts)
 
@@ -374,15 +368,6 @@ def _answer_to_score(answer: str, rule_score: float) -> float:
 
 
 def _predict_severity_from_score(risk_score: float) -> int:
-    model = load_severity_model()
-
-    if model is not None:
-        try:
-            prediction = int(model.predict(pd.DataFrame([{"risk_score": risk_score}]))[0])
-            return max(1, min(5, prediction))
-        except Exception:
-            pass
-
     if risk_score >= 5:
         return 1
     if risk_score >= 4:

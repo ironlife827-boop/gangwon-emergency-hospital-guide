@@ -571,6 +571,7 @@ export default function Home() {
                     const riskPercent = riskScore * 10;
                     const topHospital = result.hospitals[0];
                     const otherHospitals = result.hospitals.slice(1);
+                    const isEmergencyCare = result.severity_level <= 2;
 
                     return (
                       <>
@@ -665,9 +666,17 @@ export default function Home() {
                                     <p className="text-xs text-slate-500">거리</p>
                                     <p className="mt-1 font-bold text-white">{topHospital.distance_km}km</p>
                                   </div>
-                                  <div className="rounded-xl bg-slate-900 p-3">
-                                    <p className="text-xs text-slate-500">병상</p>
-                                    <p className="mt-1 font-bold text-white">{topHospital.available_beds}개</p>
+                                   <div className="rounded-xl bg-slate-900 p-3">
+                                    <p className="text-xs text-slate-500">
+                                      {isEmergencyCare ? "병상" : "구분"}
+                                    </p>
+                                    <p className="mt-1 font-bold text-white">
+                                      {isEmergencyCare
+                                        ? `${topHospital.available_beds}개`
+                                        : topHospital.is_emergency
+                                          ? "응급실"
+                                          : "일반 진료"}
+                                    </p>
                                   </div>
                                 </div>
 
@@ -705,13 +714,17 @@ export default function Home() {
                                   <h4 className="mt-1 text-lg font-bold">{hospital.hospital_name}</h4>
                                   <div className="mt-3 space-y-1 text-sm text-slate-300">
                                     <p>주요 진료과: {shortDepartment(hospital.department)}</p>
-                                    <p>
-                                      경로: {hospital.eta_min}분 · {hospital.distance_km}km ·{" "}
-                                      {routeAccuracyText(hospital.eta_source)}
-                                    </p>
-                                    <p>거리: {hospital.distance_km}km</p>
-                                    <p>응급 병상: {hospital.available_beds}개</p>
-                                  </div>
+                                     <p>
+                                       경로: {hospital.eta_min}분 · {hospital.distance_km}km ·{" "}
+                                       {routeAccuracyText(hospital.eta_source)}
+                                     </p>
+                                     <p>거리: {hospital.distance_km}km</p>
+                                    {isEmergencyCare ? (
+                                      <p>응급 병상: {hospital.available_beds}개</p>
+                                    ) : (
+                                      <p>구분: {hospital.is_emergency ? "응급실 보유 병원" : "일반 진료 병원"}</p>
+                                    )}
+                                   </div>
                                   {hospital.route_url && (
                                     <a
                                       href={hospital.route_url}

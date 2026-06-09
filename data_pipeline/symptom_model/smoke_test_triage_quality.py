@@ -8,7 +8,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 BACKEND_DIR = PROJECT_ROOT / "backend"
 sys.path.insert(0, str(BACKEND_DIR))
 
-from services.triage_service import create_data_driven_questions  # noqa: E402
+from schemas.triage import TriageAnalyzeRequest, TriageAnswer  # noqa: E402
+from services.triage_service import analyze_data_driven_triage, create_data_driven_questions  # noqa: E402
 
 
 CASES = [
@@ -124,6 +125,34 @@ def main() -> None:
                 failures.append(f"{case['symptom']} contains forbidden question term: {term}")
 
         print(f"PASS {case['symptom']} -> {disease} / {len(response['questions'])} questions")
+
+    cold_symptom = "어제부터 목이 아프고 콧물이 나며 기침이 조금 있습니다. 열은 37.5도 정도입니다."
+    cold_questions = create_data_driven_questions(cold_symptom)
+    cold_answers = [
+        TriageAnswer(question_id=item.id, question=item.question, answer="아니오")
+        for item in cold_questions["questions"]
+    ]
+    cold_result = analyze_data_driven_triage(
+        TriageAnalyzeRequest(
+            symptom=cold_symptom,
+            answers=cold_answers,
+            user_lat=37.880946,
+            user_lon=127.740439,
+        )
+    )
+
+    if cold_result.suspected_disease != "감기":
+        failures.append(f"common cold final disease -> {cold_result.suspected_disease}")
+    if cold_result.severity_level != 5:
+        failures.append(f"common cold severity -> {cold_result.severity_level}")
+    if not cold_result.hospitals or int(cold_result.hospitals[0].is_emergency or 0) != 0:
+        failures.append("common cold should recommend a nearby regular hospital first")
+
+    print(
+        "PASS common cold final triage -> "
+        f"{cold_result.suspected_disease} / {cold_result.severity_label} / "
+        f"{cold_result.hospitals[0].hospital_name if cold_result.hospitals else 'no hospital'}"
+    )
 
     if failures:
         print("\nFailures:")
