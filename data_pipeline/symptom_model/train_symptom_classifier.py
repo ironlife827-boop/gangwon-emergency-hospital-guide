@@ -50,17 +50,24 @@ def train_single_label_model(df: pd.DataFrame, target_column: str) -> Pipeline:
     X = df["input_text"]
     y = df[target_column]
 
+    if target_column == "suspected_disease":
+        vectorizer = TfidfVectorizer(
+            analyzer="word",
+            ngram_range=(1, 2),
+            min_df=1,
+            max_features=10000,
+        )
+    else:
+        vectorizer = TfidfVectorizer(
+            analyzer="char_wb",
+            ngram_range=(2, 5),
+            min_df=1,
+            max_features=8000,
+        )
+
     model = Pipeline(
         steps=[
-            (
-                "tfidf",
-                TfidfVectorizer(
-                    analyzer="char_wb",
-                    ngram_range=(2, 5),
-                    min_df=1,
-                    max_features=8000,
-                ),
-            ),
+            ("tfidf", vectorizer),
             (
                 "clf",
                 LogisticRegression(
@@ -114,7 +121,7 @@ def main():
         "metadata": {
             "train_rows": len(df),
             "source": "naver_kin_symptom_cases.csv",
-            "model_type": "TF-IDF(char_wb 2-5gram) + LogisticRegression",
+            "model_type": "TF-IDF + LogisticRegression; suspected_disease uses word 1-2gram, other targets use char_wb 2-5gram",
         },
     }
 

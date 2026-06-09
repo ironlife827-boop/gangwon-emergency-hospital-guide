@@ -1,4 +1,4 @@
-question_id,suspected_disease,symptom_group,question,positive_keywords,risk_score,required_resource_code,importance
+﻿question_id,suspected_disease,symptom_group,question,positive_keywords,risk_score,required_resource_code,importance
 DQ_LIVER_001,간부전,abdominal,눈이나 피부가 노랗거나 의식이 흐려졌나요?,황달;눈노람;피부노람;의식흐림,4,ER_GENERAL,4
 DQ_LIVER_FAILURE_001,간부전,toxic,피부나 눈 흰자가 노랗게 보이거나 소변 색이 진해졌나요?,황달;눈노람;피부노람;진한소변;소변색,4,ER_GENERAL,5
 DQ_LIVER_FAILURE_002,간부전,toxic,의식이 멍하거나 말이 느려지고 심하게 졸린 상태인가요?,의식저하;혼돈;졸림;말느림;간성혼수,5,ER_GENERAL,5
@@ -396,3 +396,138 @@ DQ_EXP_EXP054_002,알코올중독,toxic,"의식 저하, 실신, 심한 어지럼
 DQ_EXP_EXP054_003,알코올중독,toxic,통증이나 증상이 점점 심해지고 있나요?,악화;심해짐;극심한통증;지속,4,ER_GENERAL,4
 DQ_EXP_EXP054_004,알코올중독,toxic,"구토, 고열, 식은땀, 창백함 중 하나라도 동반되나요?",구토;고열;식은땀;창백,4,ER_GENERAL,4
 DQ_EXP_EXP054_005,알코올중독,toxic,"영유아, 고령자, 임산부이거나 심장·폐·당뇨 기저질환이 있나요?",영유아;고령;임산부;기저질환;당뇨,3,ER_GENERAL,3
+DQ_COMMON_001_001,감기,respiratory,열이 38도 이상으로 오르거나 숨쉬기 힘든가요?,38도;고열;숨참;호흡곤란,3,ER_GENERAL,5
+DQ_COMMON_001_002,감기,respiratory,"콧물, 기침, 목아픔이 1주 이상 지속되나요?",콧물;기침;목아픔;1주,2,ER_GENERAL,4
+DQ_COMMON_001_003,감기,respiratory,누런 가래나 가슴 통증이 함께 있나요?,누런가래;가슴통증;흉통;가래,3,ER_GENERAL,4
+DQ_COMMON_002_001,독감,respiratory,38도 이상의 고열과 심한 몸살이 갑자기 시작됐나요?,38도;39도;고열;몸살,4,ER_GENERAL,5
+DQ_COMMON_002_002,독감,respiratory,숨이 차거나 가슴 통증이 동반되나요?,숨참;호흡곤란;가슴통증;흉통,5,ER_GENERAL,5
+DQ_COMMON_002_003,독감,respiratory,"고령자, 임산부, 만성질환자이거나 증상이 빠르게 악화되나요?",고령;임산부;만성질환;악화,4,ER_GENERAL,4
+DQ_COMMON_003_001,코로나19,respiratory,후각이나 미각이 떨어지고 열 또는 기침이 있나요?,후각저하;미각저하;열;기침,3,ER_GENERAL,5
+DQ_COMMON_003_002,코로나19,respiratory,숨이 차거나 산소가 부족한 느낌이 있나요?,숨참;호흡곤란;산소;가슴답답,5,ER_GENERAL,5
+DQ_COMMON_003_003,코로나19,respiratory,확진자 접촉이나 최근 유행 노출이 있었나요?,확진자;접촉;유행;노출,2,ER_GENERAL,4
+DQ_COMMON_004_001,편도염,respiratory,침 삼키기 힘들 정도로 목 통증이 심한가요?,침삼킴곤란;목통증;인후통;편도,3,ER_GENERAL,5
+DQ_COMMON_004_002,편도염,respiratory,편도에 하얀 분비물이나 고열이 있나요?,편도;하얀분비물;고열;열,4,ER_GENERAL,4
+DQ_COMMON_004_003,편도염,respiratory,숨쉬기 어렵거나 목이 심하게 붓는 느낌이 있나요?,숨쉬기어려움;목부음;호흡곤란;부종,5,ER_GENERAL,5
+DQ_COMMON_005_001,기관지염,respiratory,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_005_002,기관지염,respiratory,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_005_003,기관지염,respiratory,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_006_001,폐렴,respiratory,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_006_002,폐렴,respiratory,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_006_003,폐렴,respiratory,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_007_001,천식,respiratory,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_007_002,천식,respiratory,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_007_003,천식,respiratory,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_008_001,알레르기 비염,respiratory,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_008_002,알레르기 비염,respiratory,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_008_003,알레르기 비염,respiratory,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_009_001,중이염,ent,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_009_002,중이염,ent,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_009_003,중이염,ent,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_010_001,결막염,eye,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_010_002,결막염,eye,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_010_003,결막염,eye,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_011_001,편두통,neuro,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_011_002,편두통,neuro,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_011_003,편두통,neuro,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_012_001,긴장성 두통,neuro,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_012_002,긴장성 두통,neuro,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_012_003,긴장성 두통,neuro,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_013_001,뇌수막염,neuro,목이 뻣뻣하거나 고개를 숙일 때 두통이 심해지나요?,목뻣뻣;고개숙임;두통;수막염,5,ER_GENERAL,5
+DQ_COMMON_013_002,뇌수막염,neuro,"고열과 심한 두통, 구토가 함께 있나요?",고열;두통;구토;오심,5,ER_GENERAL,5
+DQ_COMMON_013_003,뇌수막염,neuro,의식이 흐리거나 빛을 보기 힘든가요?,의식저하;빛공포;혼돈;경련,5,ER_GENERAL,5
+DQ_COMMON_014_001,치매 초기,neuro,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_014_002,치매 초기,neuro,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_014_003,치매 초기,neuro,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_015_001,공황장애,psychiatric,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_015_002,공황장애,psychiatric,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_015_003,공황장애,psychiatric,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_016_001,우울증,psychiatric,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_016_002,우울증,psychiatric,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_016_003,우울증,psychiatric,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_017_001,불면증,psychiatric,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_017_002,불면증,psychiatric,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_017_003,불면증,psychiatric,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_018_001,역류성 식도염,abdominal,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_018_002,역류성 식도염,abdominal,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_018_003,역류성 식도염,abdominal,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_019_001,위염,abdominal,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_019_002,위염,abdominal,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_019_003,위염,abdominal,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_020_001,위궤양,abdominal,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_020_002,위궤양,abdominal,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_020_003,위궤양,abdominal,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_021_001,장염,abdominal,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_021_002,장염,abdominal,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_021_003,장염,abdominal,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_022_001,과민성대장증후군,abdominal,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_022_002,과민성대장증후군,abdominal,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_022_003,과민성대장증후군,abdominal,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_023_001,맹장염,abdominal,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_023_002,맹장염,abdominal,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_023_003,맹장염,abdominal,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_024_001,담석증,abdominal,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_024_002,담석증,abdominal,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_024_003,담석증,abdominal,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_025_001,간염,abdominal,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_025_002,간염,abdominal,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_025_003,간염,abdominal,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_026_001,신장결석,urology,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_026_002,신장결석,urology,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_026_003,신장결석,urology,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_027_001,방광염,urology,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_027_002,방광염,urology,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_027_003,방광염,urology,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_028_001,요로감염,urology,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_028_002,요로감염,urology,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_028_003,요로감염,urology,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_029_001,전립선염,urology,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_029_002,전립선염,urology,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_029_003,전립선염,urology,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_030_001,당뇨병,endocrine,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_030_002,당뇨병,endocrine,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_030_003,당뇨병,endocrine,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_031_001,갑상선 기능 항진증,endocrine,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_031_002,갑상선 기능 항진증,endocrine,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_031_003,갑상선 기능 항진증,endocrine,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_032_001,갑상선 기능 저하증,endocrine,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_032_002,갑상선 기능 저하증,endocrine,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_032_003,갑상선 기능 저하증,endocrine,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_033_001,고혈압,cardio,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_033_002,고혈압,cardio,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_033_003,고혈압,cardio,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_034_001,협심증,cardio,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_034_002,협심증,cardio,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_034_003,협심증,cardio,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_035_001,심근경색,cardio,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_035_002,심근경색,cardio,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_035_003,심근경색,cardio,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_036_001,심부전,cardio,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_036_002,심부전,cardio,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_036_003,심부전,cardio,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_037_001,아토피,skin,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_037_002,아토피,skin,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_037_003,아토피,skin,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_038_001,두드러기,allergy,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_038_002,두드러기,allergy,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_038_003,두드러기,allergy,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_039_001,대상포진,skin,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_039_002,대상포진,skin,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_039_003,대상포진,skin,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_040_001,무좀,skin,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_040_002,무좀,skin,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_040_003,무좀,skin,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_041_001,류마티스 관절염,musculoskeletal,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_041_002,류마티스 관절염,musculoskeletal,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_041_003,류마티스 관절염,musculoskeletal,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_042_001,통풍,musculoskeletal,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_042_002,통풍,musculoskeletal,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_042_003,통풍,musculoskeletal,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_043_001,디스크,musculoskeletal,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_043_002,디스크,musculoskeletal,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_043_003,디스크,musculoskeletal,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_044_001,오십견,musculoskeletal,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_044_002,오십견,musculoskeletal,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_044_003,오십견,musculoskeletal,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_045_001,빈혈,hematology,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
+DQ_COMMON_045_002,빈혈,hematology,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
+DQ_COMMON_045_003,빈혈,hematology,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3

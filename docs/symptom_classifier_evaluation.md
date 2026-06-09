@@ -9,12 +9,12 @@ The emergency triage rule data is not used as the disease classifier. It is used
 ## Dataset
 
 - Source: `data/processed/naver_kin_symptom_cases.csv`
-- Rows used: 3139
+- Rows used: 3499
 - Input features: `cleaned_text` + `symptom_keywords`
 - Targets:
-  - `symptom_group`: 15 classes
-  - `department`: 14 classes
-  - `suspected_disease`: 76 classes
+  - `symptom_group`: 20 classes
+  - `department`: 18 classes
+  - `suspected_disease`: 121 classes
 - Train/test split: 80% / 20%, stratified by each target
 
 ## Model Comparison
@@ -28,26 +28,26 @@ Compared models:
 
 | Target | Model | Accuracy | Macro F1 | Weighted F1 | Classes |
 | --- | --- | --- | --- | --- | --- |
-| symptom_group | baseline_most_frequent | 0.2723 | 0.0285 | 0.1166 | 15 |
-| symptom_group | word_tfidf_logreg | 0.9618 | 0.9350 | 0.9638 | 15 |
-| symptom_group | char_tfidf_logreg | 0.9427 | 0.8906 | 0.9494 | 15 |
-| symptom_group | char_tfidf_linear_svc | 0.9809 | 0.9700 | 0.9809 | 15 |
-| department | baseline_most_frequent | 0.4793 | 0.0463 | 0.3106 | 14 |
-| department | word_tfidf_logreg | 0.9570 | 0.9180 | 0.9616 | 14 |
-| department | char_tfidf_logreg | 0.9379 | 0.8603 | 0.9452 | 14 |
-| department | char_tfidf_linear_svc | 0.9841 | 0.9680 | 0.9845 | 14 |
-| suspected_disease | baseline_most_frequent | 0.0350 | 0.0009 | 0.0024 | 76 |
-| suspected_disease | word_tfidf_logreg | 0.9793 | 0.9450 | 0.9797 | 76 |
-| suspected_disease | char_tfidf_logreg | 0.9745 | 0.9050 | 0.9730 | 76 |
-| suspected_disease | char_tfidf_linear_svc | 0.9857 | 0.9410 | 0.9851 | 76 |
+| symptom_group | baseline_most_frequent | 0.2443 | 0.0196 | 0.0959 | 20 |
+| symptom_group | word_tfidf_logreg | 0.9714 | 0.9537 | 0.9734 | 20 |
+| symptom_group | char_tfidf_logreg | 0.9600 | 0.9319 | 0.9640 | 20 |
+| symptom_group | char_tfidf_linear_svc | 0.9871 | 0.9827 | 0.9876 | 20 |
+| department | baseline_most_frequent | 0.4357 | 0.0337 | 0.2645 | 18 |
+| department | word_tfidf_logreg | 0.9429 | 0.9171 | 0.9506 | 18 |
+| department | char_tfidf_logreg | 0.9243 | 0.8939 | 0.9347 | 18 |
+| department | char_tfidf_linear_svc | 0.9800 | 0.9657 | 0.9813 | 18 |
+| suspected_disease | baseline_most_frequent | 0.0314 | 0.0005 | 0.0019 | 121 |
+| suspected_disease | word_tfidf_logreg | 0.9814 | 0.9536 | 0.9812 | 121 |
+| suspected_disease | char_tfidf_logreg | 0.9643 | 0.9103 | 0.9641 | 121 |
+| suspected_disease | char_tfidf_linear_svc | 0.9814 | 0.9418 | 0.9799 | 121 |
 
 ## Best Model By Target
 
 | Target | Best Model | Accuracy | Macro F1 | Weighted F1 |
 | --- | --- | --- | --- | --- |
-| symptom_group | char_tfidf_linear_svc | 0.9809 | 0.9700 | 0.9809 |
-| department | char_tfidf_linear_svc | 0.9841 | 0.9680 | 0.9845 |
-| suspected_disease | word_tfidf_logreg | 0.9793 | 0.9450 | 0.9797 |
+| symptom_group | char_tfidf_linear_svc | 0.9871 | 0.9827 | 0.9876 |
+| department | char_tfidf_linear_svc | 0.9800 | 0.9657 | 0.9813 |
+| suspected_disease | word_tfidf_logreg | 0.9814 | 0.9536 | 0.9812 |
 
 ## Data Understanding
 
@@ -57,38 +57,47 @@ Compared models:
 | --- | --- |
 | toxic | 856 |
 | trauma | 472 |
-| respiratory | 355 |
-| cardio | 324 |
+| respiratory | 419 |
+| cardio | 356 |
+| abdominal | 304 |
 | bleeding | 300 |
-| abdominal | 240 |
-| allergy | 216 |
-| neuro | 132 |
-| eye | 124 |
-| urology | 24 |
+| allergy | 224 |
+| neuro | 164 |
+| eye | 132 |
+| urology | 56 |
+| psychiatric | 48 |
+| musculoskeletal | 32 |
 | pediatric | 24 |
 | obgy | 24 |
-| psychiatric | 24 |
+| endocrine | 24 |
+| skin | 24 |
 | foreign_body | 16 |
 | infection | 8 |
+| ent | 8 |
+| hematology | 8 |
 
 ### Department Distribution
 
 | Department | Rows |
 | --- | --- |
-| 응급의학과 | 1507 |
-| 호흡기내과 | 332 |
-| 정형외과 | 308 |
-| 소화기내과 | 224 |
+| 응급의학과 | 1523 |
+| 호흡기내과 | 372 |
+| 정형외과 | 324 |
+| 소화기내과 | 280 |
+| 심장내과 | 232 |
 | 알레르기내과 | 216 |
-| 심장내과 | 208 |
-| 안과 | 124 |
-| 신경과 | 116 |
-| 비뇨의학과 | 24 |
+| 신경과 | 140 |
+| 안과 | 132 |
+| 비뇨의학과 | 56 |
+| 정신건강의학과 | 40 |
+| 이비인후과 | 40 |
+| 피부과 | 32 |
 | 소아청소년과 | 24 |
 | 산부인과 | 24 |
-| 정신건강의학과 | 16 |
-| 외과 | 8 |
-| 이비인후과 | 8 |
+| 내분비내과 | 24 |
+| 외과 | 16 |
+| 류마티스내과 | 16 |
+| 내과 | 8 |
 
 ### Suspected Disease Distribution
 
@@ -170,6 +179,51 @@ Compared models:
 | 식도 이물 | 8 |
 | 혈관부종 | 8 |
 | 알코올중독 | 8 |
+| 감기 | 8 |
+| 독감 | 8 |
+| 코로나19 | 8 |
+| 편도염 | 8 |
+| 기관지염 | 8 |
+| 폐렴 | 8 |
+| 천식 | 8 |
+| 알레르기 비염 | 8 |
+| 중이염 | 8 |
+| 결막염 | 8 |
+| 편두통 | 8 |
+| 긴장성 두통 | 8 |
+| 뇌수막염 | 8 |
+| 치매 초기 | 8 |
+| 공황장애 | 8 |
+| 우울증 | 8 |
+| 불면증 | 8 |
+| 역류성 식도염 | 8 |
+| 위염 | 8 |
+| 위궤양 | 8 |
+| 장염 | 8 |
+| 과민성대장증후군 | 8 |
+| 맹장염 | 8 |
+| 담석증 | 8 |
+| 간염 | 8 |
+| 신장결석 | 8 |
+| 방광염 | 8 |
+| 요로감염 | 8 |
+| 전립선염 | 8 |
+| 당뇨병 | 8 |
+| 갑상선 기능 항진증 | 8 |
+| 갑상선 기능 저하증 | 8 |
+| 고혈압 | 8 |
+| 협심증 | 8 |
+| 심근경색 | 8 |
+| 심부전 | 8 |
+| 아토피 | 8 |
+| 두드러기 | 8 |
+| 대상포진 | 8 |
+| 무좀 | 8 |
+| 류마티스 관절염 | 8 |
+| 통풍 | 8 |
+| 디스크 | 8 |
+| 오십견 | 8 |
+| 빈혈 | 8 |
 
 ## System Interpretation
 

@@ -160,8 +160,8 @@ DISEASE_ANCHOR_RULES = [
         "risk_severity_level": 5,
         "priority": 20,
         "keyword_groups": [
-            ["목", "기도", "음식", "이물", "걸렸"],
-            ["숨", "말", "기침", "막힘", "못쉬"],
+            ["목에걸", "기도", "음식", "이물", "사레", "걸렸", "막혔"],
+            ["숨", "말", "막힘", "못쉬", "청색증", "켁켁"],
         ],
     },
     {
@@ -456,6 +456,10 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
             "department": trained_prediction["department"],
             "suspected_disease": trained_prediction["suspected_disease"],
         }
+        disease_metadata = _metadata_for_disease(cases, predicted["suspected_disease"])
+        if disease_metadata is not None:
+            predicted["symptom_group"] = disease_metadata["symptom_group"]
+            predicted["department"] = disease_metadata["department"]
         matched_by = "trained_classifier"
         disease_confidence = trained_prediction.get("disease_confidence")
     else:

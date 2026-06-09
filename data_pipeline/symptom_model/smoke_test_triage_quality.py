@@ -77,6 +77,24 @@ CASES = [
         "required_question_terms": ["두통", "감각"],
         "forbidden_question_terms": ["심정지", "맥박", "숨 쉬지"],
     },
+    {
+        "symptom": "어제부터 목이 아프고 콧물이 나며 기침이 조금 있습니다. 열은 37.5도 정도입니다.",
+        "expected": {"감기"},
+        "required_question_terms": ["숨", "가래"],
+        "forbidden_question_terms": ["아나필락시스", "기도폐쇄", "입술", "이물"],
+    },
+    {
+        "symptom": "39도 고열과 몸살, 기침이 심합니다.",
+        "expected": {"독감"},
+        "required_question_terms": ["숨", "고령"],
+        "forbidden_question_terms": ["아나필락시스", "기도폐쇄"],
+    },
+    {
+        "symptom": "열이 나고 기침이 있으며 냄새를 잘 못 맡겠습니다.",
+        "expected": {"코로나19"},
+        "required_question_terms": ["산소", "확진자"],
+        "forbidden_question_terms": ["아나필락시스", "기도폐쇄"],
+    },
 ]
 
 
