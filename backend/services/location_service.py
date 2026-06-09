@@ -11,14 +11,21 @@ KAKAO_ADDRESS_SEARCH_URL = "https://dapi.kakao.com/v2/local/search/address.json"
 KAKAO_KEYWORD_SEARCH_URL = "https://dapi.kakao.com/v2/local/search/keyword.json"
 
 
+class LocationSearchError(RuntimeError):
+    pass
+
+
 def _read_kakao_api_key() -> str:
-    return os.getenv("KAKAO_MOBILITY_REST_API_KEY", "").strip()
+    return (
+        os.getenv("KAKAO_REST_API_KEY", "").strip()
+        or os.getenv("KAKAO_MOBILITY_REST_API_KEY", "").strip()
+    )
 
 
 def _request_kakao_local(url: str, params: dict[str, str | int]) -> dict | None:
     api_key = _read_kakao_api_key()
     if not api_key:
-        return None
+        raise LocationSearchError("Kakao REST API key is not configured.")
 
     query_string = urllib.parse.urlencode(params)
     request = urllib.request.Request(
@@ -30,7 +37,11 @@ def _request_kakao_local(url: str, params: dict[str, str | int]) -> dict | None:
     try:
         with urllib.request.urlopen(request, timeout=3.0) as response:
             return json.loads(response.read().decode("utf-8"))
-    except (TimeoutError, urllib.error.URLError, urllib.error.HTTPError, json.JSONDecodeError):
+    except urllib.error.HTTPError as exc:
+        if exc.code in {401, 403}:
+            raise LocationSearchError("Kakao Local API authorization failed.") from exc
+        return None
+    except (TimeoutError, urllib.error.URLError, json.JSONDecodeError):
         return None
 
 

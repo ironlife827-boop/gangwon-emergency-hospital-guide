@@ -250,12 +250,19 @@ export default function Home() {
         `${API_BASE_URL}/api/location/search?q=${encodeURIComponent(query)}`
       );
 
-      if (!response.ok) throw new Error("위치 검색에 실패했습니다.");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.detail ?? "위치 검색에 실패했습니다.");
+      }
 
       const data = await response.json();
       setLocationResults(data.results ?? []);
-    } catch {
-      setErrorMessage("위치 검색 결과를 불러오지 못했습니다. 더 구체적인 주소나 장소명을 입력해 주세요.");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "위치 검색 결과를 불러오지 못했습니다. 더 구체적인 주소나 장소명을 입력해 주세요."
+      );
     } finally {
       setLocationSearchLoading(false);
     }

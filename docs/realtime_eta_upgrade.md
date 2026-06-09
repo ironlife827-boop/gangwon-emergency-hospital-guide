@@ -28,13 +28,16 @@
 
 ## 환경 변수
 
-백엔드 배포 환경에 다음 값을 추가한다. 같은 REST API 키를 위치 검색과 길찾기 ETA에 함께 사용한다.
+백엔드 배포 환경에 다음 값을 추가한다.
 
 ```bash
+KAKAO_REST_API_KEY=발급받은_REST_API_KEY
 KAKAO_MOBILITY_REST_API_KEY=발급받은_REST_API_KEY
 ```
 
 로컬 개발 시에는 `backend/.env`에 같은 값을 넣으면 된다.
+
+`KAKAO_REST_API_KEY`는 Kakao Local 주소/장소 검색에 우선 사용한다. 값이 없으면 기존 `KAKAO_MOBILITY_REST_API_KEY`를 fallback으로 사용한다.
 
 ## 프론트 표시
 
@@ -48,6 +51,7 @@ KAKAO_MOBILITY_REST_API_KEY=발급받은_REST_API_KEY
 - 브라우저 위치 정보는 사용자가 `현재 위치 사용`을 눌러 권한을 허용해야 사용할 수 있다.
 - 위치 권한을 허용하지 않아도 `지도 검색`으로 출발 위치를 설정할 수 있다.
 - Kakao Developers 앱 설정에서 Kakao Map/Local API 사용 설정이 필요할 수 있다.
+- Kakao Mobility 길찾기 API 키와 Kakao Local API 키 권한이 다르게 설정되어 있으면, ETA는 동작하지만 지도 검색은 실패할 수 있다.
 - 위치 권한을 자동으로 강제 요청하는 방식은 개인정보 관점에서 좋지 않고, 브라우저 정책상 사용자 제스처 없이 제한될 수 있다.
 - API 호출 비용과 쿼터가 있으므로 모든 병원이 아니라 추천 상위 후보군에 대해서만 실시간 ETA를 계산한다.
 - 응급 상황에서는 ETA가 참고 정보일 뿐이며, 매우 긴급한 경우 119 신고 안내가 우선이다.
