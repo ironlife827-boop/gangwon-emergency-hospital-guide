@@ -74,7 +74,8 @@ type TriageResult = {
   hospitals: RecommendedHospital[];
 };
 
-const API_BASE_URL = "https://gangwon-emergency-api.onrender.com";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://gangwon-emergency-api.onrender.com";
 
 const symptomGroupLabel: Record<string, string> = {
   cardio: "심혈관계",

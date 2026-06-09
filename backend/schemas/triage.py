@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TriageQuestion(BaseModel):
@@ -20,6 +20,8 @@ class SimilarCase(BaseModel):
 
 
 class AnalysisEvidence(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+
     method: str
     model_used: bool
     keyword_rule_used: bool
