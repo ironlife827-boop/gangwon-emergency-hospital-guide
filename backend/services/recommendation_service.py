@@ -88,9 +88,19 @@ def _match_department_score(hospital_department: str, target_department: str) ->
     return 0
 
 
-def _kakao_route_url(hospital_name: str, lat: float, lon: float) -> str:
-    destination = urllib.parse.quote(f"{hospital_name},{lat},{lon}", safe=",")
-    return f"https://map.kakao.com/link/to/{destination}"
+def _kakao_route_url(
+    origin_lat: float,
+    origin_lon: float,
+    hospital_name: str,
+    destination_lat: float,
+    destination_lon: float,
+) -> str:
+    origin = urllib.parse.quote(f"내 위치,{origin_lat},{origin_lon}", safe=",")
+    destination = urllib.parse.quote(
+        f"{hospital_name},{destination_lat},{destination_lon}",
+        safe=",",
+    )
+    return f"https://map.kakao.com/link/by/car/{origin}/{destination}"
 
 
 def _kakao_route_app_url(
@@ -103,7 +113,7 @@ def _kakao_route_app_url(
         "kakaomap://route"
         f"?sp={origin_lat},{origin_lon}"
         f"&ep={destination_lat},{destination_lon}"
-        "&by=CAR"
+        "&by=car"
     )
 
 
@@ -220,9 +230,11 @@ def recommend_hospitals(
                 lat=round(float(row["lat"]), 7),
                 lon=round(float(row["lon"]), 7),
                 route_url=_kakao_route_url(
+                    origin_lat=float(user_lat),
+                    origin_lon=float(user_lon),
                     hospital_name=str(row["hospital_name"]),
-                    lat=float(row["lat"]),
-                    lon=float(row["lon"]),
+                    destination_lat=float(row["lat"]),
+                    destination_lon=float(row["lon"]),
                 ),
                 route_app_url=_kakao_route_app_url(
                     origin_lat=float(user_lat),
