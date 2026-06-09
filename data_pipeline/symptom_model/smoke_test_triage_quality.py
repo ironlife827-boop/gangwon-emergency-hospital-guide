@@ -55,9 +55,15 @@ CASES = [
     },
     {
         "symptom": "갑자기 열이 40도까지 나고 숨쉬는게 힘들어요",
-        "expected": {"호흡부전"},
-        "required_question_terms": ["고열", "숨"],
+        "expected": {"고열 동반 호흡곤란"},
+        "required_question_terms": ["숨"],
         "forbidden_question_terms": ["물에 빠", "익수", "구조"],
+    },
+    {
+        "symptom": "굴을 잘못 먹고 토하고 설사해요",
+        "expected": {"노로바이러스 의심 급성 위장염"},
+        "required_question_terms": ["소변", "설사"],
+        "forbidden_question_terms": ["물에 빠", "익수", "강아지", "고양이"],
     },
 ]
 

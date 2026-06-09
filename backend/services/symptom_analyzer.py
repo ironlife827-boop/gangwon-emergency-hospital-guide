@@ -100,12 +100,21 @@ DISEASE_ANCHOR_RULES = [
         ],
     },
     {
-        "disease": "호흡부전",
+        "disease": "고열 동반 호흡곤란",
         "risk_severity_level": 5,
         "priority": 25,
         "keyword_groups": [
             ["고열", "열", "39도", "40도", "체온"],
             ["숨쉬", "숨이", "호흡곤란", "숨차", "숨찬", "숨을 못"],
+        ],
+    },
+    {
+        "disease": "노로바이러스 의심 급성 위장염",
+        "risk_severity_level": 4,
+        "priority": 35,
+        "keyword_groups": [
+            ["굴", "생굴", "조개", "해산물", "회"],
+            ["구토", "토", "설사", "복통", "배아프", "열", "오한", "메스꺼움"],
         ],
     },
     {
@@ -181,10 +190,15 @@ SAFETY_ANCHOR_METADATA = {
         "department": "응급의학과",
         "suspected_disease": "탈수",
     },
-    "호흡부전": {
+    "고열 동반 호흡곤란": {
         "symptom_group": "respiratory",
         "department": "응급의학과",
-        "suspected_disease": "호흡부전",
+        "suspected_disease": "고열 동반 호흡곤란",
+    },
+    "노로바이러스 의심 급성 위장염": {
+        "symptom_group": "abdominal",
+        "department": "소화기내과",
+        "suspected_disease": "노로바이러스 의심 급성 위장염",
     },
 }
 
@@ -317,8 +331,31 @@ def _build_similar_cases(top_rows: pd.DataFrame) -> list[SimilarCase]:
     return similar_cases
 
 
+ANIMAL_CASE_KEYWORDS = [
+    "강아지",
+    "고양이",
+    "반려견",
+    "반려묘",
+    "햄스터",
+    "동물병원",
+    "사료",
+    "우리집개",
+    "개가",
+    "개는",
+    "강아지가",
+    "고양이가",
+]
+
+
+def _human_case_mask(cases: pd.DataFrame) -> pd.Series:
+    normalized = cases["cleaned_text"].fillna("").astype(str).map(_normalize_text)
+    animal_pattern = "|".join(ANIMAL_CASE_KEYWORDS)
+    return ~normalized.str.contains(animal_pattern, regex=True)
+
+
 def _rank_rows_by_similarity(cases: pd.DataFrame, sims, candidate_mask, top_k: int) -> pd.DataFrame:
-    candidate_indices = cases.index[candidate_mask].tolist()
+    human_mask = _human_case_mask(cases)
+    candidate_indices = cases.index[candidate_mask & human_mask].tolist()
     if not candidate_indices:
         return pd.DataFrame(columns=list(cases.columns) + ["similarity"])
 
@@ -341,6 +378,9 @@ def _select_similar_case_rows(
 
     disease_mask = cases["suspected_disease"].astype(str).eq(str(predicted_disease))
     disease_rows = _rank_rows_by_similarity(cases, sims, disease_mask, top_k)
+    if disease_rows.empty and str(predicted_disease) in SAFETY_ANCHOR_METADATA:
+        return pd.DataFrame(columns=list(cases.columns) + ["similarity"]), "safety_anchor_no_case"
+
     selected_parts.append(disease_rows)
     used_indices.update(disease_rows.index.tolist())
 

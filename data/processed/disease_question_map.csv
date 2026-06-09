@@ -130,6 +130,11 @@ DQ_RESP_FAIL_002,호흡부전,respiratory,고열과 함께 숨쉬기 힘들거�
 DQ_RESP_FAIL_003,호흡부전,respiratory,"기침이나 가래, 흉통이 함께 있나요?",기침;가래;흉통;가슴통증,4,ER_RESP,4
 DQ_RESP_FAIL_004,호흡부전,respiratory,말을 길게 하기 어렵거나 누우면 숨이 더 찬가요?,말하기어려움;누우면숨참;호흡곤란;숨참,5,ER_RESP,5
 DQ_RESP_FAIL_005,호흡부전,respiratory,의식이 흐려지거나 심하게 처지고 어지러운가요?,의식저하;처짐;어지럼;혼돈,5,ER_RESP,5
+DQ_FEVER_DYSPNEA_001,고열 동반 호흡곤란,respiratory,체온이 39도 이상이고 숨쉬기 힘든 상태가 계속되나요?,39도;40도;고열;숨쉬기힘듦;호흡곤란,5,ER_RESP,5
+DQ_FEVER_DYSPNEA_002,고열 동반 호흡곤란,respiratory,가만히 있어도 숨이 차거나 말하기 어려운가요?,숨참;말하기어려움;호흡곤란;빠른호흡,5,ER_RESP,5
+DQ_FEVER_DYSPNEA_003,고열 동반 호흡곤란,respiratory,"기침, 가래, 흉통이 함께 있나요?",기침;가래;흉통;가슴통증,4,ER_RESP,4
+DQ_FEVER_DYSPNEA_004,고열 동반 호흡곤란,respiratory,입술이 파래지거나 의식이 흐려지나요?,입술파래;청색증;의식저하;혼돈,5,ER_RESP,5
+DQ_FEVER_DYSPNEA_005,고열 동반 호흡곤란,respiratory,해열제를 써도 열이 떨어지지 않거나 오한이 심한가요?,해열제;열안떨어짐;오한;고열,4,ER_RESP,4
 DQ_BURN_001,화상,trauma,"화상 부위가 얼굴, 손, 발, 생식기 부위인가요?",얼굴;손;발;생식기;화상,5,ER_TRAUMA,5
 DQ_BURN_002,화상,trauma,화상 부위가 넓거나 물집이 생겼나요?,넓은화상;물집;화상,4,ER_TRAUMA,4
 DQ_BURN_003,화상,trauma,"얼굴, 목, 손, 발, 회음부 또는 넓은 부위에 화상을 입었나요?",얼굴;목;손;발;넓은부위;화상,5,ER_TRAUMA,5
@@ -151,3 +156,8 @@ DQ_DEHYDRATION_002,탈수,abdominal,소변량이 크게 줄었거나 8시간 이
 DQ_DEHYDRATION_003,탈수,abdominal,입이 마르고 어지럽거나 일어서기 힘든가요?,입마름;어지럼;기립;기운없음,4,ER_GENERAL,4
 DQ_DEHYDRATION_004,탈수,abdominal,피가 섞인 설사나 심한 복통·고열이 함께 있나요?,혈변;피섞인설사;복통;고열,5,ER_GENERAL,5
 DQ_DEHYDRATION_005,탈수,abdominal,영유아·고령자이거나 만성질환이 있나요?,영유아;고령;만성질환;기저질환,4,ER_GENERAL,4
+DQ_NORO_GASTRO_001,노로바이러스 의심 급성 위장염,abdominal,굴이나 해산물을 먹은 뒤 구토·설사가 시작됐나요?,굴;생굴;해산물;구토;설사,4,ER_GENERAL,5
+DQ_NORO_GASTRO_002,노로바이러스 의심 급성 위장염,abdominal,설사가 반복되거나 물처럼 나오나요?,반복설사;물설사;설사;복통,4,ER_GENERAL,4
+DQ_NORO_GASTRO_003,노로바이러스 의심 급성 위장염,abdominal,"고열이나 오한, 심한 복통이 함께 있나요?",고열;오한;복통;열,4,ER_GENERAL,4
+DQ_NORO_GASTRO_004,노로바이러스 의심 급성 위장염,abdominal,소변량이 줄거나 입이 마르고 어지러운가요?,소변감소;입마름;어지럼;탈수,5,ER_GENERAL,5
+DQ_NORO_GASTRO_005,노로바이러스 의심 급성 위장염,abdominal,피가 섞인 변이나 검은 변을 봤나요?,혈변;피섞인변;검은변;흑변,5,ER_GENERAL,5
