@@ -64,6 +64,7 @@ class RecommendedHospital(BaseModel):
     rank: int
     hospital_name: str
     eta_min: int
+    eta_source: str = "estimated"
     available_beds: int
     recommendation_score: int
     reason: str

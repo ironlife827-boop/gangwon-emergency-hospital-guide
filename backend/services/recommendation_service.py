@@ -8,6 +8,7 @@ import pandas as pd
 
 from schemas.triage import RecommendedHospital
 from services.data_loader import load_beds, load_eta_model, load_hospitals
+from services.eta_service import get_kakao_driving_eta
 
 
 DEFAULT_USER_LAT = 37.8813153  # 춘천시청 인근 기본 좌표
@@ -96,8 +97,9 @@ def recommend_hospitals(
     hospitals = load_hospitals().copy()
     beds = load_beds()
 
-    user_lat = user_lat or DEFAULT_USER_LAT
-    user_lon = user_lon or DEFAULT_USER_LON
+    location_was_provided = user_lat is not None and user_lon is not None
+    user_lat = user_lat if user_lat is not None else DEFAULT_USER_LAT
+    user_lon = user_lon if user_lon is not None else DEFAULT_USER_LON
 
     hospitals = hospitals.dropna(subset=["lat", "lon"]).copy()
 
@@ -113,6 +115,7 @@ def recommend_hospitals(
     )
 
     hospitals["eta_min"] = hospitals["distance_km"].apply(_predict_eta)
+    hospitals["eta_source"] = "estimated"
 
     hospitals["department_score"] = hospitals["department"].apply(
         lambda value: _match_department_score(value, department)
@@ -134,6 +137,36 @@ def recommend_hospitals(
     hospitals = hospitals.sort_values(
         ["recommendation_score", "is_emergency", "department_score"],
         ascending=[False, False, False],
+    ).head(max(limit, limit * 3))
+
+    if location_was_provided:
+        for index, row in hospitals.iterrows():
+            route_eta = get_kakao_driving_eta(
+                origin_lat=float(user_lat),
+                origin_lon=float(user_lon),
+                destination_lat=float(row["lat"]),
+                destination_lon=float(row["lon"]),
+            )
+            if route_eta is None:
+                continue
+
+            hospitals.at[index, "eta_min"] = route_eta.eta_min
+            hospitals.at[index, "distance_km"] = route_eta.distance_km
+            hospitals.at[index, "eta_source"] = route_eta.source
+
+        hospitals["distance_score"] = hospitals["distance_km"].apply(lambda value: max(0, 25 - value * 0.8))
+        hospitals["eta_score"] = hospitals["eta_min"].apply(lambda value: max(0, 25 - value * 0.5))
+        hospitals["recommendation_score"] = (
+            hospitals["department_score"]
+            + hospitals["emergency_score"]
+            + hospitals["distance_score"]
+            + hospitals["eta_score"]
+            + hospitals["night_score"]
+        ).round().astype(int)
+
+    hospitals = hospitals.sort_values(
+        ["recommendation_score", "is_emergency", "department_score", "eta_min"],
+        ascending=[False, False, False, True],
     ).head(limit)
 
     bed_map = {}
@@ -150,12 +183,15 @@ def recommend_hospitals(
         if int(row.get("department_score", 0)) >= 20:
             reason_parts.append(f"{department} 관련 진료과 매칭")
         reason_parts.append(f"예상 이동시간 {int(row['eta_min'])}분")
+        if str(row.get("eta_source", "")) == "kakao_directions":
+            reason_parts.append("실시간 길찾기 반영")
 
         recommendations.append(
             RecommendedHospital(
                 rank=rank,
                 hospital_name=str(row["hospital_name"]),
                 eta_min=int(row["eta_min"]),
+                eta_source=str(row.get("eta_source", "estimated")),
                 available_beds=available_beds,
                 recommendation_score=int(row["recommendation_score"]),
                 reason=" · ".join(reason_parts),

@@ -39,6 +39,7 @@ type RecommendedHospital = {
   rank: number;
   hospital_name: string;
   eta_min: number;
+  eta_source?: string;
   available_beds: number;
   recommendation_score: number;
   reason: string;
@@ -182,6 +183,11 @@ const methodLabel = (method: string) => {
   if (method === "trained_classifier") return "네이버 증상 데이터 기반 학습 모델";
   if (method === "trained_classifier_anchor") return "학습 모델 + 고위험 증상 보정";
   return "유사 사례 기반 추론";
+};
+
+const etaSourceLabel = (source?: string | null) => {
+  if (source === "kakao_directions") return "실시간 길찾기";
+  return "모델 추정";
 };
 
 export default function Home() {
@@ -540,6 +546,9 @@ export default function Home() {
                                 <div className="rounded-xl bg-slate-950/70 p-3">
                                   <p className="text-xs text-slate-500">예상 이동</p>
                                   <p className="mt-1 font-bold text-white">{topHospital.eta_min}분</p>
+                                  <p className="mt-1 text-[11px] text-slate-500">
+                                    {etaSourceLabel(topHospital.eta_source)}
+                                  </p>
                                 </div>
                                 <div className="rounded-xl bg-slate-950/70 p-3">
                                   <p className="text-xs text-slate-500">거리</p>
@@ -569,7 +578,9 @@ export default function Home() {
                                   <h4 className="mt-1 text-lg font-bold">{hospital.hospital_name}</h4>
                                   <div className="mt-3 space-y-1 text-sm text-slate-300">
                                     <p>주요 진료과: {shortDepartment(hospital.department)}</p>
-                                    <p>예상 이동시간: {hospital.eta_min}분</p>
+                                    <p>
+                                      예상 이동시간: {hospital.eta_min}분 · {etaSourceLabel(hospital.eta_source)}
+                                    </p>
                                     <p>거리: {hospital.distance_km}km</p>
                                     <p>응급 병상: {hospital.available_beds}개</p>
                                   </div>
