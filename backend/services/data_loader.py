@@ -76,14 +76,6 @@ def load_beds() -> pd.DataFrame:
 
 
 @lru_cache(maxsize=1)
-def load_severity_model():
-    path = MODEL_DIR / "severity_model.pkl"
-    if not path.exists():
-        return None
-    return joblib.load(path)
-
-
-@lru_cache(maxsize=1)
 def load_eta_model():
     path = MODEL_DIR / "eta_model.pkl"
     if not path.exists():
