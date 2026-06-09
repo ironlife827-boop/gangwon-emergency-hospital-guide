@@ -42,18 +42,53 @@ def _normalize_text(text: str) -> str:
     return str(text).lower().replace(" ", "").replace(",", "").replace(".", "")
 
 
-def _keyword_overlap_count(text: str, keyword_text: str) -> int:
+def _keyword_in_text(keyword: str, text: str) -> bool:
+    keyword_norm = _normalize_text(keyword)
     text_norm = _normalize_text(text)
+
+    if keyword_norm and keyword_norm in text_norm:
+        return True
+
+    if keyword_norm.endswith("부음"):
+        body = keyword_norm[:-2]
+        return any(
+            variant in text_norm
+            for variant in [f"{body}붓", f"{body}이붓", f"{body}가붓"]
+        )
+
+    if keyword_norm.endswith("힘듦"):
+        return keyword_norm[:-1] in text_norm
+
+    return False
+
+
+def _keyword_overlap_count(text: str, keyword_text: str) -> int:
     keywords = [
-        _normalize_text(keyword)
+        str(keyword).strip()
         for keyword in str(keyword_text).split(";")
         if str(keyword).strip()
     ]
-    return sum(1 for keyword in keywords if keyword and keyword in text_norm)
+    return sum(1 for keyword in keywords if _keyword_in_text(keyword, text))
 
 
 def _contains_any_keyword(text: str, keyword_text: str) -> bool:
     return _keyword_overlap_count(text, keyword_text) > 0
+
+
+def _already_covered_by_user_input(text: str, keyword_text: str) -> bool:
+    text_norm = _normalize_text(text)
+    matched_keywords = []
+
+    for keyword in str(keyword_text).split(";"):
+        keyword_norm = _normalize_text(keyword)
+        if keyword_norm and _keyword_in_text(keyword_norm, text_norm):
+            matched_keywords.append(keyword_norm)
+
+    if len(matched_keywords) >= 2:
+        return True
+
+    # 질환명이나 상황 단어 하나만 들어갔다고 질문을 제거하지 않는다.
+    return any(len(keyword) >= 3 for keyword in matched_keywords)
 
 
 def _severity_label(level: int) -> str:
@@ -130,14 +165,14 @@ def _score_question(row, symptom: str, analysis: dict) -> float:
 
     disease_match = 1 if question_disease == disease else 0
     group_match = 1 if question_group == group else 0
-    overlap = _keyword_overlap_count(symptom, keywords)
+    already_covered = _already_covered_by_user_input(symptom, keywords)
 
     # 이미 사용자가 말한 핵심 정보를 반복 질문하지 않기 위한 강한 패널티
-    already_mentioned_penalty = 8 if overlap > 0 else 0
+    already_mentioned_penalty = 12 if already_covered else 0
 
     score = (
-        disease_match * 20
-        + group_match * 4
+        disease_match * 40
+        + group_match * 5
         + risk_score * 2.5
         + importance * 2
         - already_mentioned_penalty
@@ -159,7 +194,7 @@ def _dynamic_question_limit(symptom: str, analysis: dict, ranked_rows: pd.DataFr
 
     mentioned_count = 0
     for _, row in ranked_rows.head(6).iterrows():
-        if _contains_any_keyword(symptom, str(row.get("positive_keywords", ""))):
+        if _already_covered_by_user_input(symptom, str(row.get("positive_keywords", ""))):
             mentioned_count += 1
 
     if text_len >= 35 and confidence >= 0.75 and mentioned_count >= 2:
@@ -194,10 +229,16 @@ def _select_dynamic_questions(symptom: str, analysis: dict, limit: int = 4) -> l
         disease = str(analysis.get("suspected_disease", ""))
         symptom_group = str(analysis.get("symptom_group", ""))
 
-        candidate_rows = disease_questions[
+        disease_rows = disease_questions[
             disease_questions["suspected_disease"].astype(str).eq(disease)
-            | disease_questions["symptom_group"].astype(str).eq(symptom_group)
         ].copy()
+
+        if not disease_rows.empty:
+            candidate_rows = disease_rows
+        else:
+            candidate_rows = disease_questions[
+                disease_questions["symptom_group"].astype(str).eq(symptom_group)
+            ].copy()
 
         if candidate_rows.empty:
             candidate_rows = disease_questions.copy()
@@ -220,11 +261,11 @@ def _select_dynamic_questions(symptom: str, analysis: dict, limit: int = 4) -> l
                 continue
 
             # 점수가 너무 낮은 group-only 질문은 제외
-            if float(row["question_rank_score"]) < 10:
+            if float(row["question_rank_score"]) < 12:
                 continue
 
             # 사용자가 이미 명확히 말한 내용은 다시 묻지 않음
-            if _contains_any_keyword(symptom, str(row.get("positive_keywords", ""))):
+            if _already_covered_by_user_input(symptom, str(row.get("positive_keywords", ""))):
                 continue
 
             selected.append(
@@ -424,6 +465,7 @@ def analyze_data_driven_triage(payload: TriageAnalyzeRequest) -> TriageAnalyzeRe
     )
 
     return TriageAnalyzeResponse(
+        final_symptom_summary=final_symptom_summary,
         severity_level=severity_level,
         severity_label=_severity_label(severity_level),
         risk_score=int(round(combined_risk_score)),

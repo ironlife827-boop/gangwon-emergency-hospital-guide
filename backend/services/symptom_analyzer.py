@@ -62,6 +62,18 @@ def _find_emergency_risk_rule(symptom: str) -> dict | None:
     return None
 
 
+def _metadata_for_disease(cases: pd.DataFrame, disease: str) -> dict | None:
+    disease_rows = cases[cases["suspected_disease"].astype(str).eq(str(disease))]
+    if disease_rows.empty:
+        return None
+
+    return {
+        "symptom_group": _majority_value(disease_rows, "symptom_group"),
+        "department": _majority_value(disease_rows, "department"),
+        "suspected_disease": str(disease),
+    }
+
+
 def _predict_with_trained_classifier(symptom: str) -> dict | None:
     classifier = load_symptom_classifier()
     if classifier is None:
@@ -199,8 +211,15 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
         matched_by = "similarity"
         disease_confidence = None
 
-    # 응급 키워드는 질환을 덮어쓰지 않고 위험도만 보정
     risk_rule = _find_emergency_risk_rule(symptom)
+
+    # classifier 신뢰도가 낮고 고위험 앵커 증상이 명확하면,
+    # triage 룰이 아니라 네이버 사례 데이터의 동일 질환 메타데이터로만 보정한다.
+    if risk_rule is not None and (disease_confidence is None or disease_confidence < 0.5):
+        anchored_prediction = _metadata_for_disease(cases, str(risk_rule["risk_disease"]))
+        if anchored_prediction is not None:
+            predicted = anchored_prediction
+            matched_by = "trained_classifier_anchor"
 
     top_rows, search_scope = _select_similar_case_rows(
         cases=cases,
