@@ -53,6 +53,12 @@ CASES = [
         "required_question_terms": ["소변", "설사"],
         "forbidden_question_terms": ["심정지", "맥박"],
     },
+    {
+        "symptom": "갑자기 열이 40도까지 나고 숨쉬는게 힘들어요",
+        "expected": {"호흡부전"},
+        "required_question_terms": ["고열", "숨"],
+        "forbidden_question_terms": ["물에 빠", "익수", "구조"],
+    },
 ]
 
 

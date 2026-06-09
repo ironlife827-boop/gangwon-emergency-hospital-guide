@@ -126,6 +126,10 @@ DQ_DISLOCATION_003,탈구,trauma,통증 때문에 관절을 거의 움직일 수
 DQ_DISLOCATION_004,탈구,trauma,손발 끝이 저리거나 감각이 둔하고 차갑나요?,저림;감각저하;차가움;창백,5,ER_TRAUMA,5
 DQ_DISLOCATION_005,탈구,trauma,"넘어짐, 스포츠, 교통사고 뒤 발생했나요?",넘어짐;스포츠;교통사고;외상,3,ER_TRAUMA,3
 DQ_RESP_FAIL_001,호흡부전,respiratory,가만히 있어도 숨이 차거나 입술이 파래지나요?,숨이차;입술파래;청색증;호흡곤란,5,ER_RESP,5
+DQ_RESP_FAIL_002,호흡부전,respiratory,고열과 함께 숨쉬기 힘들거나 숨이 빠르게 차나요?,고열;숨쉬기힘듦;숨참;호흡곤란;빠른호흡,5,ER_RESP,5
+DQ_RESP_FAIL_003,호흡부전,respiratory,"기침이나 가래, 흉통이 함께 있나요?",기침;가래;흉통;가슴통증,4,ER_RESP,4
+DQ_RESP_FAIL_004,호흡부전,respiratory,말을 길게 하기 어렵거나 누우면 숨이 더 찬가요?,말하기어려움;누우면숨참;호흡곤란;숨참,5,ER_RESP,5
+DQ_RESP_FAIL_005,호흡부전,respiratory,의식이 흐려지거나 심하게 처지고 어지러운가요?,의식저하;처짐;어지럼;혼돈,5,ER_RESP,5
 DQ_BURN_001,화상,trauma,"화상 부위가 얼굴, 손, 발, 생식기 부위인가요?",얼굴;손;발;생식기;화상,5,ER_TRAUMA,5
 DQ_BURN_002,화상,trauma,화상 부위가 넓거나 물집이 생겼나요?,넓은화상;물집;화상,4,ER_TRAUMA,4
 DQ_BURN_003,화상,trauma,"얼굴, 목, 손, 발, 회음부 또는 넓은 부위에 화상을 입었나요?",얼굴;목;손;발;넓은부위;화상,5,ER_TRAUMA,5

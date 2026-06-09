@@ -100,6 +100,15 @@ DISEASE_ANCHOR_RULES = [
         ],
     },
     {
+        "disease": "호흡부전",
+        "risk_severity_level": 5,
+        "priority": 25,
+        "keyword_groups": [
+            ["고열", "열", "39도", "40도", "체온"],
+            ["숨쉬", "숨이", "호흡곤란", "숨차", "숨찬", "숨을 못"],
+        ],
+    },
+    {
         "disease": "소아 고열 경련",
         "risk_severity_level": 5,
         "keyword_groups": [
@@ -171,6 +180,11 @@ SAFETY_ANCHOR_METADATA = {
         "symptom_group": "abdominal",
         "department": "응급의학과",
         "suspected_disease": "탈수",
+    },
+    "호흡부전": {
+        "symptom_group": "respiratory",
+        "department": "응급의학과",
+        "suspected_disease": "호흡부전",
     },
 }
 
