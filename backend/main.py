@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from routers.health import router as health_router
+from routers.location import router as location_router
 from routers.triage import router as triage_router
 
 
@@ -23,6 +24,7 @@ app.add_middleware(
 )
 
 app.include_router(health_router, prefix="/api")
+app.include_router(location_router, prefix="/api")
 app.include_router(triage_router, prefix="/api")
 
 

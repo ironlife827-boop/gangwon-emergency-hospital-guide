@@ -50,6 +50,14 @@ type RecommendedHospital = {
   is_emergency?: number | null;
 };
 
+type LocationSearchResult = {
+  name: string;
+  address: string;
+  lat: number;
+  lon: number;
+  source: string;
+};
+
 type QuestionResponse = {
   symptom: string;
   symptom_group: string;
@@ -194,6 +202,8 @@ export default function Home() {
   const [symptom, setSymptom] = useState("");
   const [userLat, setUserLat] = useState("");
   const [userLon, setUserLon] = useState("");
+  const [locationQuery, setLocationQuery] = useState("");
+  const [locationResults, setLocationResults] = useState<LocationSearchResult[]>([]);
   const [questionResponse, setQuestionResponse] = useState<QuestionResponse | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [result, setResult] = useState<TriageResult | null>(null);
@@ -201,6 +211,7 @@ export default function Home() {
   const [questionLoading, setQuestionLoading] = useState(false);
   const [analyzeLoading, setAnalyzeLoading] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [locationSearchLoading, setLocationSearchLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const numericLat = userLat.trim() ? Number(userLat) : null;
@@ -218,7 +229,44 @@ export default function Home() {
     setQuestionResponse(null);
     setAnswers({});
     setResult(null);
+    setLocationQuery("");
+    setLocationResults([]);
     setErrorMessage("");
+  };
+
+  const handleSearchLocation = async () => {
+    const query = locationQuery.trim();
+    if (query.length < 2) {
+      setErrorMessage("주소나 장소명을 두 글자 이상 입력해 주세요.");
+      return;
+    }
+
+    setLocationSearchLoading(true);
+    setErrorMessage("");
+    setLocationResults([]);
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/location/search?q=${encodeURIComponent(query)}`
+      );
+
+      if (!response.ok) throw new Error("위치 검색에 실패했습니다.");
+
+      const data = await response.json();
+      setLocationResults(data.results ?? []);
+    } catch {
+      setErrorMessage("위치 검색 결과를 불러오지 못했습니다. 더 구체적인 주소나 장소명을 입력해 주세요.");
+    } finally {
+      setLocationSearchLoading(false);
+    }
+  };
+
+  const handleSelectLocation = (item: LocationSearchResult) => {
+    setUserLat(item.lat.toFixed(6));
+    setUserLon(item.lon.toFixed(6));
+    setLocationQuery(item.name || item.address);
+    setLocationResults([]);
+    resetConsultation();
   };
 
   const handleGetCurrentLocation = () => {
@@ -379,6 +427,46 @@ export default function Home() {
                   {locationLoading ? "위치 확인 중..." : "현재 위치 사용"}
                 </button>
               </div>
+
+              <div className="mb-3 flex flex-col gap-2 md:flex-row">
+                <input
+                  value={locationQuery}
+                  onChange={(event) => setLocationQuery(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      handleSearchLocation();
+                    }
+                  }}
+                  className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none placeholder:text-slate-500 focus:border-cyan-400"
+                  placeholder="주소나 장소명 검색 예: 강원대학교병원, 춘천시청"
+                />
+
+                <button
+                  type="button"
+                  onClick={handleSearchLocation}
+                  disabled={locationSearchLoading}
+                  className="rounded-xl border border-slate-600 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-cyan-400 hover:text-cyan-300 disabled:cursor-not-allowed disabled:text-slate-500"
+                >
+                  {locationSearchLoading ? "검색 중..." : "지도 검색"}
+                </button>
+              </div>
+
+              {locationResults.length > 0 && (
+                <div className="mb-3 space-y-2">
+                  {locationResults.map((item) => (
+                    <button
+                      key={`${item.lat}-${item.lon}-${item.name}`}
+                      type="button"
+                      onClick={() => handleSelectLocation(item)}
+                      className="w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-left transition hover:border-cyan-400"
+                    >
+                      <span className="block text-sm font-semibold text-white">{item.name}</span>
+                      <span className="mt-1 block text-xs text-slate-400">{item.address}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
 
               <div className="grid gap-3 md:grid-cols-2">
                 <input
