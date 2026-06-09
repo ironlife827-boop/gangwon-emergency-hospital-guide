@@ -60,6 +60,12 @@ CASES = [
         "forbidden_question_terms": ["물에 빠", "익수", "구조"],
     },
     {
+        "symptom": "어제 저녁부터 머리가 심하게 아프고 열이 38.5도 정도 계속 나고 있습니다. 진통제를 먹어도 잘 낫지 않고 몸살처럼 온몸이 쑤십니다.",
+        "expected": {"수막염 의심"},
+        "required_question_terms": ["목", "의식"],
+        "forbidden_question_terms": ["굴", "해산물", "노로", "열사병"],
+    },
+    {
         "symptom": "굴을 잘못 먹고 토하고 설사해요",
         "expected": {"노로바이러스 의심 급성 위장염"},
         "required_question_terms": ["소변", "설사"],

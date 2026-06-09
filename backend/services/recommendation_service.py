@@ -118,6 +118,38 @@ def _kakao_route_app_url(
     )
 
 
+def _bed_score(available_beds: int, severity_level: int) -> int:
+    if available_beds >= 5:
+        return 45
+    if available_beds > 0:
+        return 35
+    if severity_level <= 2:
+        return -120
+    return -70
+
+
+def _bed_status_for_row(row, realtime_bed_map: dict, static_bed_map: dict) -> pd.Series:
+    realtime_bed = realtime_bed_map.get(str(row.get("hospital_id", ""))) or realtime_bed_map.get(
+        str(row["hospital_name"])
+    )
+    if realtime_bed is not None:
+        return pd.Series(
+            {
+                "available_beds": int(realtime_bed.emergency_beds),
+                "bed_source": realtime_bed.source,
+                "bed_updated_at": realtime_bed.updated_at,
+            }
+        )
+
+    return pd.Series(
+        {
+            "available_beds": int(static_bed_map.get(row["hospital_name"], 0)),
+            "bed_source": "static_csv",
+            "bed_updated_at": None,
+        }
+    )
+
+
 def recommend_hospitals(
     department: str,
     severity_level: int,
@@ -127,6 +159,10 @@ def recommend_hospitals(
 ) -> list[RecommendedHospital]:
     hospitals = load_hospitals().copy()
     beds = load_beds()
+    realtime_bed_map = get_realtime_bed_map()
+    static_bed_map = {}
+    if not beds.empty:
+        static_bed_map = dict(zip(beds["hospital_name"], beds["hvec"]))
 
     location_was_provided = user_lat is not None and user_lon is not None
     user_lat = user_lat if user_lat is not None else DEFAULT_USER_LAT
@@ -152,6 +188,15 @@ def recommend_hospitals(
         lambda value: _match_department_score(value, department)
     )
 
+    hospitals[["available_beds", "bed_source", "bed_updated_at"]] = hospitals.apply(
+        lambda row: _bed_status_for_row(row, realtime_bed_map, static_bed_map),
+        axis=1,
+    )
+    hospitals["bed_score"] = hospitals["available_beds"].apply(
+        lambda value: _bed_score(int(value), severity_level)
+    )
+    hospitals["has_available_bed"] = hospitals["available_beds"].apply(lambda value: int(value) > 0)
+
     hospitals["emergency_score"] = hospitals["is_emergency"].apply(lambda value: 30 if int(value) == 1 else 0)
     hospitals["distance_score"] = hospitals["distance_km"].apply(lambda value: max(0, 25 - value * 0.8))
     hospitals["eta_score"] = hospitals["eta_min"].apply(lambda value: max(0, 25 - value * 0.5))
@@ -159,6 +204,7 @@ def recommend_hospitals(
 
     hospitals["recommendation_score"] = (
         hospitals["department_score"]
+        + hospitals["bed_score"]
         + hospitals["emergency_score"]
         + hospitals["distance_score"]
         + hospitals["eta_score"]
@@ -166,8 +212,8 @@ def recommend_hospitals(
     ).round().astype(int)
 
     hospitals = hospitals.sort_values(
-        ["recommendation_score", "is_emergency", "department_score"],
-        ascending=[False, False, False],
+        ["has_available_bed", "recommendation_score", "is_emergency", "department_score"],
+        ascending=[False, False, False, False],
     ).head(max(limit, limit * 3))
 
     if location_was_provided:
@@ -189,6 +235,7 @@ def recommend_hospitals(
         hospitals["eta_score"] = hospitals["eta_min"].apply(lambda value: max(0, 25 - value * 0.5))
         hospitals["recommendation_score"] = (
             hospitals["department_score"]
+            + hospitals["bed_score"]
             + hospitals["emergency_score"]
             + hospitals["distance_score"]
             + hospitals["eta_score"]
@@ -196,28 +243,15 @@ def recommend_hospitals(
         ).round().astype(int)
 
     hospitals = hospitals.sort_values(
-        ["recommendation_score", "is_emergency", "department_score", "eta_min"],
-        ascending=[False, False, False, True],
+        ["has_available_bed", "recommendation_score", "is_emergency", "department_score", "eta_min"],
+        ascending=[False, False, False, False, True],
     ).head(limit)
-
-    realtime_bed_map = get_realtime_bed_map()
-    bed_map = {}
-    if not beds.empty:
-        bed_map = dict(zip(beds["hospital_name"], beds["hvec"]))
 
     recommendations: list[RecommendedHospital] = []
     for rank, (_, row) in enumerate(hospitals.iterrows(), start=1):
-        realtime_bed = realtime_bed_map.get(str(row.get("hospital_id", ""))) or realtime_bed_map.get(
-            str(row["hospital_name"])
-        )
-        if realtime_bed is not None:
-            available_beds = int(realtime_bed.emergency_beds)
-            bed_source = realtime_bed.source
-            bed_updated_at = realtime_bed.updated_at
-        else:
-            available_beds = int(bed_map.get(row["hospital_name"], 0))
-            bed_source = "static_csv"
-            bed_updated_at = None
+        available_beds = int(row.get("available_beds", 0))
+        bed_source = str(row.get("bed_source", "static_csv"))
+        bed_updated_at = row.get("bed_updated_at")
 
         reason_parts = []
 
@@ -225,6 +259,10 @@ def recommend_hospitals(
             reason_parts.append("응급실 보유")
         if int(row.get("department_score", 0)) >= 20:
             reason_parts.append(f"{department} 관련 진료과 매칭")
+        if available_beds > 0:
+            reason_parts.append(f"가용 병상 {available_beds}개")
+        else:
+            reason_parts.append("가용 병상 0개")
         reason_parts.append(f"예상 이동시간 {int(row['eta_min'])}분")
 
         recommendations.append(
