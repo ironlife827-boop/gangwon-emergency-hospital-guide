@@ -61,6 +61,7 @@ type QuestionResponse = {
 };
 
 type TriageResult = {
+  final_symptom_summary: string;
   severity_level: number;
   severity_label: string;
   risk_score: number;
@@ -179,6 +180,7 @@ const normalizeRiskScore = (score: number) => Math.max(0, Math.min(10, Math.roun
 const methodLabel = (method: string) => {
   if (method === "keyword_rule") return "고위험 키워드 안전장치";
   if (method === "trained_classifier") return "네이버 증상 데이터 기반 학습 모델";
+  if (method === "trained_classifier_anchor") return "학습 모델 + 고위험 증상 보정";
   return "유사 사례 기반 추론";
 };
 
@@ -199,6 +201,14 @@ export default function Home() {
   const numericLon = userLon.trim() ? Number(userLon) : null;
 
   const resetConsultation = () => {
+    setQuestionResponse(null);
+    setAnswers({});
+    setResult(null);
+    setErrorMessage("");
+  };
+
+  const startNewConsultation = () => {
+    setSymptom("");
     setQuestionResponse(null);
     setAnswers({});
     setResult(null);
@@ -507,6 +517,11 @@ export default function Home() {
                           </div>
                         </div>
 
+                        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
+                          <p className="text-xs text-slate-500">판단 요약</p>
+                          <p className="mt-2 text-sm leading-6 text-slate-300">{result.summary}</p>
+                        </div>
+
                         {topHospital && (
                           <div className="rounded-3xl border border-cyan-400/40 bg-cyan-400/10 p-5 md:p-6">
                             <p className="text-sm font-semibold text-cyan-300">가장 먼저 확인할 병원</p>
@@ -578,6 +593,11 @@ export default function Home() {
                             <p className="mt-2 text-slate-400">{result.evidence.explanation}</p>
                           </div>
 
+                          <div className="mt-4 rounded-2xl bg-slate-900 p-4 text-sm text-slate-300">
+                            <p className="font-semibold text-white">최종 분석 문장</p>
+                            <p className="mt-2 leading-6 text-slate-400">{result.final_symptom_summary}</p>
+                          </div>
+
                           <div className="mt-4 space-y-3">
                             {result.similar_cases.slice(0, 3).map((item) => (
                               <div
@@ -614,6 +634,14 @@ export default function Home() {
                             ))}
                           </div>
                         </details>
+
+                        <button
+                          type="button"
+                          onClick={startNewConsultation}
+                          className="w-full rounded-2xl border border-slate-700 px-6 py-4 font-bold text-slate-200 transition hover:border-cyan-400 hover:text-cyan-300"
+                        >
+                          새 증상 입력하기
+                        </button>
                       </>
                     );
                   })()}
