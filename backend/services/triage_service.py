@@ -42,14 +42,18 @@ def _normalize_text(text: str) -> str:
     return str(text).lower().replace(" ", "").replace(",", "").replace(".", "")
 
 
-def _contains_any_keyword(symptom: str, keyword_text: str) -> bool:
-    symptom_norm = _normalize_text(symptom)
+def _keyword_overlap_count(text: str, keyword_text: str) -> int:
+    text_norm = _normalize_text(text)
     keywords = [
         _normalize_text(keyword)
         for keyword in str(keyword_text).split(";")
         if str(keyword).strip()
     ]
-    return any(keyword and keyword in symptom_norm for keyword in keywords)
+    return sum(1 for keyword in keywords if keyword and keyword in text_norm)
+
+
+def _contains_any_keyword(text: str, keyword_text: str) -> bool:
+    return _keyword_overlap_count(text, keyword_text) > 0
 
 
 def _severity_label(level: int) -> str:
@@ -113,13 +117,74 @@ def _select_fallback_triage_questions(
     return questions
 
 
+def _score_question(row, symptom: str, analysis: dict) -> float:
+    disease = str(analysis.get("suspected_disease", ""))
+    group = str(analysis.get("symptom_group", ""))
+
+    question_disease = str(row.get("suspected_disease", ""))
+    question_group = str(row.get("symptom_group", ""))
+
+    risk_score = float(row.get("risk_score", 0))
+    importance = float(row.get("importance", 0))
+    keywords = str(row.get("positive_keywords", ""))
+
+    disease_match = 1 if question_disease == disease else 0
+    group_match = 1 if question_group == group else 0
+    overlap = _keyword_overlap_count(symptom, keywords)
+
+    # 이미 사용자가 말한 핵심 정보를 반복 질문하지 않기 위한 강한 패널티
+    already_mentioned_penalty = 8 if overlap > 0 else 0
+
+    score = (
+        disease_match * 20
+        + group_match * 4
+        + risk_score * 2.5
+        + importance * 2
+        - already_mentioned_penalty
+    )
+
+    return score
+
+
+def _dynamic_question_limit(symptom: str, analysis: dict, ranked_rows: pd.DataFrame) -> int:
+    """
+    정보가 구체적이면 질문 수를 줄이고,
+    짧고 모호하면 질문 수를 늘린다.
+    """
+    text_len = len(str(symptom).replace(" ", ""))
+    confidence = analysis.get("disease_confidence")
+
+    if confidence is None:
+        confidence = 0
+
+    mentioned_count = 0
+    for _, row in ranked_rows.head(6).iterrows():
+        if _contains_any_keyword(symptom, str(row.get("positive_keywords", ""))):
+            mentioned_count += 1
+
+    if text_len >= 35 and confidence >= 0.75 and mentioned_count >= 2:
+        return 1
+
+    if text_len >= 25 and confidence >= 0.65:
+        return 2
+
+    if text_len <= 10:
+        return 4
+
+    return 3
+
+
 def _select_dynamic_questions(symptom: str, analysis: dict, limit: int = 4) -> list[TriageQuestion]:
     """
-    핵심 원칙:
-    1. suspected_disease 전용 질문을 최우선으로 사용
-    2. 같은 symptom_group 질문은 같은 질환 질문이 부족할 때만 보조로 사용
-    3. 사용자 입력에 이미 들어간 내용은 반복 질문하지 않음
-    4. 최종 질문 수는 보통 1~4개
+    모델이 예측한 suspected_disease를 기준으로 질문 후보를 넓게 가져온 뒤,
+    질문별 점수를 계산해 필요한 질문만 선택한다.
+
+    점수 요소:
+    - 예측 질환 일치
+    - 예측 증상군 일치
+    - 위험도 점수
+    - 질문 중요도
+    - 사용자 입력에 이미 포함된 정보 패널티
     """
     disease_questions = load_disease_questions()
     selected: list[TriageQuestion] = []
@@ -129,21 +194,36 @@ def _select_dynamic_questions(symptom: str, analysis: dict, limit: int = 4) -> l
         disease = str(analysis.get("suspected_disease", ""))
         symptom_group = str(analysis.get("symptom_group", ""))
 
-        exact_rows = disease_questions[
+        candidate_rows = disease_questions[
             disease_questions["suspected_disease"].astype(str).eq(disease)
+            | disease_questions["symptom_group"].astype(str).eq(symptom_group)
         ].copy()
 
-        exact_rows = exact_rows.sort_values(
-            ["importance", "risk_score"],
-            ascending=[False, False],
+        if candidate_rows.empty:
+            candidate_rows = disease_questions.copy()
+
+        candidate_rows["question_rank_score"] = candidate_rows.apply(
+            lambda row: _score_question(row, symptom, analysis),
+            axis=1,
         )
 
-        for _, row in exact_rows.iterrows():
+        candidate_rows = candidate_rows.sort_values(
+            ["question_rank_score", "risk_score", "importance"],
+            ascending=[False, False, False],
+        )
+
+        dynamic_limit = min(limit, _dynamic_question_limit(symptom, analysis, candidate_rows))
+
+        for _, row in candidate_rows.iterrows():
             question_id = str(row["question_id"])
             if question_id in selected_ids:
                 continue
 
-            # 이미 입력된 핵심 증상은 다시 묻지 않음
+            # 점수가 너무 낮은 group-only 질문은 제외
+            if float(row["question_rank_score"]) < 10:
+                continue
+
+            # 사용자가 이미 명확히 말한 내용은 다시 묻지 않음
             if _contains_any_keyword(symptom, str(row.get("positive_keywords", ""))):
                 continue
 
@@ -157,40 +237,8 @@ def _select_dynamic_questions(symptom: str, analysis: dict, limit: int = 4) -> l
             )
             selected_ids.add(question_id)
 
-            if len(selected) >= limit:
+            if len(selected) >= dynamic_limit:
                 break
-
-        # 질환 전용 질문이 너무 적을 때만 같은 증상군에서 보조 질문 1~2개 추가
-        if len(selected) < 2:
-            group_rows = disease_questions[
-                disease_questions["symptom_group"].astype(str).eq(symptom_group)
-                & ~disease_questions["suspected_disease"].astype(str).eq(disease)
-            ].copy()
-
-            group_rows = group_rows.sort_values(
-                ["importance", "risk_score"],
-                ascending=[False, False],
-            )
-
-            for _, row in group_rows.iterrows():
-                question_id = str(row["question_id"])
-                if question_id in selected_ids:
-                    continue
-                if _contains_any_keyword(symptom, str(row.get("positive_keywords", ""))):
-                    continue
-
-                selected.append(
-                    TriageQuestion(
-                        id=question_id,
-                        question=str(row["question"]),
-                        options=["예", "아니오", "잘 모르겠음"],
-                        allow_custom=False,
-                    )
-                )
-                selected_ids.add(question_id)
-
-                if len(selected) >= min(limit, 2):
-                    break
 
     # 그래도 질문이 없으면 기존 응급도 룰에서 1개만 보강
     if len(selected) == 0:
@@ -326,10 +374,7 @@ def _build_question_score_map() -> dict:
 
 
 def analyze_data_driven_triage(payload: TriageAnalyzeRequest) -> TriageAnalyzeResponse:
-    # 문진 답변을 합쳐 최종 증상 문장 생성
     final_symptom_summary = _build_final_symptom_summary(payload.symptom, payload.answers)
-
-    # 최종 문장을 다시 네이버 기반 학습 모델에 입력
     symptom_analysis = analyze_symptom_text(final_symptom_summary)
     question_score_map = _build_question_score_map()
 
