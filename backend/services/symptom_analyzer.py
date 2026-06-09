@@ -80,8 +80,9 @@ def _get_vectorizer():
     if _vectorizer is None or _matrix is None:
         _vectorizer = TfidfVectorizer(
             analyzer="char_wb",
-            ngram_range=(2, 4),
+            ngram_range=(2, 5),
             min_df=1,
+            sublinear_tf=True,
         )
         _matrix = _vectorizer.fit_transform(cases["search_text"].astype(str).tolist())
 
@@ -150,22 +151,13 @@ def _build_similar_cases(top_rows: pd.DataFrame) -> list[SimilarCase]:
     return similar_cases
 
 
-def _rank_rows_by_similarity(
-    cases: pd.DataFrame,
-    sims,
-    candidate_mask,
-    top_k: int,
-) -> pd.DataFrame:
+def _rank_rows_by_similarity(cases: pd.DataFrame, sims, candidate_mask, top_k: int) -> pd.DataFrame:
     candidate_indices = cases.index[candidate_mask].tolist()
 
     if not candidate_indices:
         return pd.DataFrame(columns=list(cases.columns) + ["similarity"])
 
-    ranked_indices = sorted(
-        candidate_indices,
-        key=lambda idx: float(sims[idx]),
-        reverse=True,
-    )[:top_k]
+    ranked_indices = sorted(candidate_indices, key=lambda idx: float(sims[idx]), reverse=True)[:top_k]
 
     rows = cases.loc[ranked_indices].copy()
     rows["similarity"] = [float(sims[idx]) for idx in ranked_indices]
@@ -173,25 +165,9 @@ def _rank_rows_by_similarity(
     return rows
 
 
-def _select_similar_case_rows(
-    cases: pd.DataFrame,
-    sims,
-    predicted_disease: str,
-    predicted_group: str,
-    top_k: int,
-) -> tuple[pd.DataFrame, str]:
-    """
-    기존 방식은 전체 2700건에서 바로 cosine top-k를 뽑았기 때문에,
-    최종 질환은 맞아도 유사 사례가 다른 질환/낮은 유사도로 표시될 수 있었다.
-
-    개선 방식:
-    1. 예측 suspected_disease가 같은 사례 우선
-    2. 부족하면 같은 symptom_group 사례
-    3. 그래도 부족하면 전체 사례 fallback
-    """
+def _select_similar_case_rows(cases: pd.DataFrame, sims, predicted_disease: str, predicted_group: str, top_k: int) -> pd.DataFrame:
     selected_parts: list[pd.DataFrame] = []
     used_indices: set[int] = set()
-    search_scope = "disease"
 
     disease_mask = cases["suspected_disease"].astype(str).eq(str(predicted_disease))
     disease_rows = _rank_rows_by_similarity(cases, sims, disease_mask, top_k)
@@ -199,47 +175,50 @@ def _select_similar_case_rows(
     used_indices.update(disease_rows.index.tolist())
 
     if sum(len(part) for part in selected_parts) < top_k:
-        search_scope = "disease+group"
         remaining = top_k - sum(len(part) for part in selected_parts)
-        group_mask = (
-            cases["symptom_group"].astype(str).eq(str(predicted_group))
-            & ~cases.index.isin(used_indices)
-        )
+        group_mask = cases["symptom_group"].astype(str).eq(str(predicted_group)) & ~cases.index.isin(used_indices)
         group_rows = _rank_rows_by_similarity(cases, sims, group_mask, remaining)
         selected_parts.append(group_rows)
         used_indices.update(group_rows.index.tolist())
 
     if sum(len(part) for part in selected_parts) < top_k:
-        search_scope = "disease+group+fallback"
         remaining = top_k - sum(len(part) for part in selected_parts)
         fallback_mask = ~cases.index.isin(used_indices)
         fallback_rows = _rank_rows_by_similarity(cases, sims, fallback_mask, remaining)
         selected_parts.append(fallback_rows)
 
-    selected = pd.concat(
-        [part for part in selected_parts if not part.empty],
-        axis=0,
-    )
+    selected = pd.concat([part for part in selected_parts if not part.empty], axis=0)
 
-    selected = selected.head(top_k).copy()
-
-    return selected, search_scope
+    return selected.head(top_k).copy()
 
 
 def _get_naver_severity_from_rows(rows: pd.DataFrame, fallback: int = 1) -> int:
     if rows.empty:
         return fallback
-
     value = int(round(float(rows["severity_level"].mean())))
     return max(1, min(5, value))
+
+
+def _build_enriched_query(symptom: str, predicted: dict) -> str:
+    # 모델이 이미 예측한 질환/진료과/증상군을 검색 질의에 보강한다.
+    # 이렇게 하면 같은 질환군의 실제 사례가 더 안정적으로 상위에 노출된다.
+    disease = str(predicted.get("suspected_disease", ""))
+    group = str(predicted.get("symptom_group", ""))
+    department = str(predicted.get("department", ""))
+
+    return " ".join([
+        str(symptom),
+        disease,
+        disease,
+        disease,
+        group,
+        department,
+    ]).strip()
 
 
 def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
     cases = load_naver_cases()
     vectorizer, matrix = _get_vectorizer()
-
-    query_vec = vectorizer.transform([symptom])
-    sims = cosine_similarity(query_vec, matrix).ravel()
 
     keyword_override = _find_keyword_override(symptom)
     trained_prediction = _predict_with_trained_classifier(symptom)
@@ -257,10 +236,11 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
         matched_by = "trained_classifier"
         fallback_severity = 1
     else:
-        # 모델이 없을 때만 전체 유사도 기반으로 1차 예측한다.
-        all_indices = sims.argsort()[::-1][:top_k]
+        base_vec = vectorizer.transform([symptom])
+        base_sims = cosine_similarity(base_vec, matrix).ravel()
+        all_indices = base_sims.argsort()[::-1][:top_k]
         all_top_rows = cases.iloc[all_indices].copy()
-        all_top_rows["similarity"] = sims[all_indices]
+        all_top_rows["similarity"] = base_sims[all_indices]
 
         predicted = {
             "symptom_group": _majority_value(all_top_rows, "symptom_group", "etc"),
@@ -270,7 +250,11 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
         matched_by = "similarity"
         fallback_severity = _get_naver_severity_from_rows(all_top_rows, fallback=1)
 
-    top_rows, search_scope = _select_similar_case_rows(
+    enriched_query = _build_enriched_query(symptom, predicted)
+    query_vec = vectorizer.transform([enriched_query])
+    sims = cosine_similarity(query_vec, matrix).ravel()
+
+    top_rows = _select_similar_case_rows(
         cases=cases,
         sims=sims,
         predicted_disease=predicted["suspected_disease"],
@@ -295,5 +279,4 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
         "max_similarity": round(max_similarity, 4),
         "similar_cases": similar_cases,
         "matched_by": matched_by,
-        "similar_case_search_scope": search_scope,
     }
