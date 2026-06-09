@@ -456,15 +456,15 @@ DQ_COMMON_019_003,위염,abdominal,증상이 3일 이상 지속되거나 반복�
 DQ_COMMON_020_001,위궤양,abdominal,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
 DQ_COMMON_020_002,위궤양,abdominal,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
 DQ_COMMON_020_003,위궤양,abdominal,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
-DQ_COMMON_021_001,장염,abdominal,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
-DQ_COMMON_021_002,장염,abdominal,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
-DQ_COMMON_021_003,장염,abdominal,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_021_001,장염,abdominal,설사가 하루 6회 이상 반복되거나 물처럼 나오나요?,6회;설사;물설사;반복,3,ER_GENERAL,5
+DQ_COMMON_021_002,장염,abdominal,"피가 섞인 변, 검은 변, 심한 복통 중 하나가 있나요?",혈변;검은변;심한복통;복통,4,ER_GENERAL,5
+DQ_COMMON_021_003,장염,abdominal,소변이 줄거나 입이 마르고 어지러운 탈수 증상이 있나요?,소변감소;입마름;어지럼;탈수,4,ER_GENERAL,4
 DQ_COMMON_022_001,과민성대장증후군,abdominal,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
 DQ_COMMON_022_002,과민성대장증후군,abdominal,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
 DQ_COMMON_022_003,과민성대장증후군,abdominal,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
-DQ_COMMON_023_001,맹장염,abdominal,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
-DQ_COMMON_023_002,맹장염,abdominal,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
-DQ_COMMON_023_003,맹장염,abdominal,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3
+DQ_COMMON_023_001,맹장염,abdominal,오른쪽 아랫배 통증이 점점 심해지거나 걸을 때 울리나요?,오른쪽아랫배;걸을때통증;악화;충수염,4,ER_GENERAL,5
+DQ_COMMON_023_002,맹장염,abdominal,"구역질, 미열, 식욕 저하가 함께 있나요?",구역;미열;식욕저하;발열,3,ER_GENERAL,4
+DQ_COMMON_023_003,맹장염,abdominal,배를 눌렀다 뗄 때 통증이 더 심해지나요?,반발통;누르면통증;복통;심한통증,5,ER_GENERAL,5
 DQ_COMMON_024_001,담석증,abdominal,증상이 갑자기 심해졌거나 빠르게 악화되고 있나요?,악화;심해짐;갑자기;지속,3,ER_GENERAL,4
 DQ_COMMON_024_002,담석증,abdominal,"고열, 심한 통증, 숨참, 의식 저하 중 하나라도 동반되나요?",고열;심한통증;숨참;의식저하,4,ER_GENERAL,5
 DQ_COMMON_024_003,담석증,abdominal,증상이 3일 이상 지속되거나 반복되고 있나요?,3일;지속;반복;재발,2,ER_GENERAL,3

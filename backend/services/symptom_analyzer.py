@@ -44,6 +44,16 @@ DISEASE_ANCHOR_RULES = [
     {
         "disease": "뇌졸중",
         "risk_severity_level": 5,
+        "priority": 28,
+        "keyword_groups": [
+            ["입꼬리", "얼굴", "안면", "눈"],
+            ["처지", "감기지", "비대칭", "마비", "돌아가"],
+            ["갑자기", "아침", "일어났", "한쪽"],
+        ],
+    },
+    {
+        "disease": "뇌졸중",
+        "risk_severity_level": 5,
         "keyword_groups": [
             ["갑자기", "갑작", "깨질듯", "벼락"],
             ["두통", "머리"],
@@ -64,8 +74,9 @@ DISEASE_ANCHOR_RULES = [
         "disease": "급성 심근경색",
         "risk_severity_level": 5,
         "keyword_groups": [
-            ["가슴", "흉통", "명치"],
+            ["가슴", "흉통"],
             ["답답", "조이", "짓누", "통증", "숨이 차", "숨차"],
+            ["식은땀", "왼팔", "호흡곤란", "숨차", "짓누"],
         ],
     },
     {
@@ -200,6 +211,60 @@ DISEASE_ANCHOR_RULES = [
 ]
 
 
+DISEASE_EVIDENCE_RULES = [
+    {"disease": "감기", "priority": 18, "keyword_groups": [["목", "인후", "목아"], ["콧물", "코막힘", "재채기"], ["기침"]]},
+    {"disease": "독감", "priority": 26, "keyword_groups": [["39도", "고열", "열"], ["몸살", "근육통", "쑤시", "오한", "지속", "계속"], ["기침", "해열제", "이틀", "안떨어"]]},
+    {"disease": "코로나19", "priority": 26, "keyword_groups": [["열", "기침"], ["냄새", "후각", "맛", "미각"]]},
+    {"disease": "편도염", "priority": 22, "keyword_groups": [["목", "인후", "편도"], ["침삼", "삼키기", "삼킬"], ["힘들", "아프"]]},
+    {"disease": "기관지염", "priority": 20, "keyword_groups": [["기침"], ["2주", "오래", "계속"], ["가래"]]},
+    {"disease": "폐렴", "priority": 28, "keyword_groups": [["고열", "열"], ["기침", "가래"], ["가슴", "흉통", "숨차", "숨이차"]]},
+    {"disease": "천식", "priority": 26, "keyword_groups": [["숨", "호흡"], ["쌕쌕", "천명", "휘파람"]]},
+    {"disease": "알레르기 비염", "priority": 20, "keyword_groups": [["재채기"], ["콧물", "코막힘"], ["가렵", "알레르기"]]},
+    {"disease": "중이염", "priority": 20, "keyword_groups": [["귀"], ["아프", "통증", "먹먹"], ["잘들리지", "청력", "들리지"]]},
+    {"disease": "결막염", "priority": 20, "keyword_groups": [["눈"], ["충혈", "빨갛"], ["눈곱", "가렵", "눈물"]]},
+    {"disease": "편두통", "priority": 21, "keyword_groups": [["한쪽"], ["머리", "두통"], ["욱신", "빛", "구역"]]},
+    {"disease": "긴장성 두통", "priority": 18, "keyword_groups": [["머리", "두통"], ["띠", "조여", "압박"]]},
+    {"disease": "뇌수막염", "priority": 34, "keyword_groups": [["고열", "열"], ["두통", "머리"], ["목", "뻣뻣", "구토", "빛"]]},
+    {"disease": "치매 초기", "priority": 16, "keyword_groups": [["기억", "건망"], ["최근", "자꾸", "반복"]]},
+    {"disease": "공황장애", "priority": 20, "keyword_groups": [["갑자기", "발작"], ["심장", "두근"], ["숨", "불안", "공포"]]},
+    {"disease": "우울증", "priority": 16, "keyword_groups": [["우울"], ["무기력", "하기싫", "흥미"]]},
+    {"disease": "불면증", "priority": 16, "keyword_groups": [["잠"], ["어렵", "못자", "깨"]]},
+    {"disease": "역류성 식도염", "priority": 20, "keyword_groups": [["속", "가슴"], ["신물", "역류", "트림"]]},
+    {"disease": "위염", "priority": 18, "keyword_groups": [["명치", "속"], ["쓰리", "불편", "소화"]]},
+    {"disease": "위궤양", "priority": 21, "keyword_groups": [["식사", "식후"], ["명치", "속"], ["통증", "쓰림"]]},
+    {"disease": "장염", "priority": 30, "keyword_groups": [["설사", "물설사"], ["복통", "배아", "배가아", "배"], ["6번", "여러", "계속", "반복", "구토", "열"]]},
+    {"disease": "과민성대장증후군", "priority": 18, "keyword_groups": [["긴장", "스트레스"], ["배", "복통"], ["설사", "변비"]]},
+    {"disease": "맹장염", "priority": 32, "keyword_groups": [["오른쪽아랫배", "우하복부", "맹장", "충수"], ["아프", "통증"], ["걷", "미열", "구역", "심해"]]},
+    {"disease": "담석증", "priority": 24, "keyword_groups": [["오른쪽윗배", "우상복부"], ["구역", "메스꺼", "기름"], ["아프", "통증"]]},
+    {"disease": "간염", "priority": 22, "keyword_groups": [["피부", "눈"], ["노랗", "황달"], ["피로", "소변"]]},
+    {"disease": "신장결석", "priority": 24, "keyword_groups": [["옆구리"], ["찢어질", "극심", "통증"], ["혈뇨", "소변", "구역"]]},
+    {"disease": "방광염", "priority": 20, "keyword_groups": [["소변"], ["따갑", "통증"], ["자주", "마렵", "빈뇨"]]},
+    {"disease": "요로감염", "priority": 22, "keyword_groups": [["열", "오한"], ["소변", "배뇨"], ["통증", "따갑", "옆구리"]]},
+    {"disease": "전립선염", "priority": 20, "keyword_groups": [["회음부", "골반"], ["배뇨", "소변"], ["불편", "통증"]]},
+    {"disease": "당뇨병", "priority": 18, "keyword_groups": [["물", "갈증"], ["소변"], ["많이", "자주"]]},
+    {"disease": "저혈당", "priority": 24, "keyword_groups": [["식은땀"], ["손", "떨", "어지", "기운", "혈당"]]},
+    {"disease": "갑상선 기능 항진증", "priority": 18, "keyword_groups": [["심장", "두근", "빨리"], ["체중", "줄"], ["손떨", "더위"]]},
+    {"disease": "갑상선 기능 저하증", "priority": 18, "keyword_groups": [["피곤"], ["체중", "늘"], ["추위", "붓"]]},
+    {"disease": "고혈압", "priority": 18, "keyword_groups": [["뒷목", "혈압"], ["당기", "두통", "아프"]]},
+    {"disease": "협심증", "priority": 24, "keyword_groups": [["운동", "걸을"], ["가슴", "흉통"], ["조이", "답답"]]},
+    {"disease": "심근경색", "priority": 34, "keyword_groups": [["가슴", "흉통"], ["짓누", "쥐어짜", "답답"], ["식은땀", "왼팔", "숨차"]]},
+    {"disease": "부정맥", "priority": 24, "keyword_groups": [["심장", "맥박"], ["불규칙", "두근", "건너"]]},
+    {"disease": "심부전", "priority": 24, "keyword_groups": [["조금만", "누우면", "걸어도"], ["숨", "숨차"], ["다리", "부종", "피로"]]},
+    {"disease": "아토피", "priority": 18, "keyword_groups": [["피부"], ["가렵"], ["붉", "건조", "습진"]]},
+    {"disease": "두드러기", "priority": 20, "keyword_groups": [["피부"], ["발진", "두드러기"], ["갑자기", "가렵", "붉"]]},
+    {"disease": "대상포진", "priority": 22, "keyword_groups": [["한쪽"], ["물집", "수포"], ["통증", "화끈"]]},
+    {"disease": "무좀", "priority": 18, "keyword_groups": [["발가락", "발"], ["사이"], ["가렵", "벗겨", "진물"]]},
+    {"disease": "류마티스 관절염", "priority": 20, "keyword_groups": [["아침"], ["손가락", "관절"], ["뻣뻣", "붓"]]},
+    {"disease": "통풍", "priority": 22, "keyword_groups": [["엄지발가락", "발가락"], ["붓", "빨갛"], ["극심", "아프", "통증"]]},
+    {"disease": "디스크", "priority": 20, "keyword_groups": [["허리"], ["다리"], ["저리", "통증"]]},
+    {"disease": "오십견", "priority": 18, "keyword_groups": [["어깨"], ["팔"], ["안올라", "못올", "아프"]]},
+    {"disease": "골절", "priority": 22, "keyword_groups": [["넘어", "다쳤", "부딪", "뚝", "소리"], ["팔", "다리", "무릎", "발목", "손목"], ["붓", "움직일", "걷기힘", "체중"]]},
+    {"disease": "빈혈", "priority": 18, "keyword_groups": [["어지"], ["피곤", "창백", "숨차"]]},
+    {"disease": "패혈증 의심", "priority": 34, "keyword_groups": [["고열", "열"], ["의식", "혼돈", "축", "저하"]]},
+    {"disease": "아나필락시스", "priority": 36, "keyword_groups": [["음식", "약", "벌"], ["입술", "얼굴", "혀", "목", "두드러기"], ["숨", "호흡", "어지럼"]]},
+]
+
+
 SAFETY_ANCHOR_METADATA = {
     "소아 고열 경련": {
         "symptom_group": "pediatric",
@@ -295,6 +360,32 @@ def _find_disease_anchor_rule(symptom: str) -> dict | None:
         return None
 
     return {**best_rule, "anchor_score": best_score}
+
+
+def _find_disease_evidence_rule(symptom: str) -> dict | None:
+    text = _normalize_text(symptom)
+    best_rule = None
+    best_score = 0
+
+    for rule in DISEASE_EVIDENCE_RULES:
+        score = int(rule.get("priority", 0))
+        all_groups_matched = True
+
+        for keyword_group in rule["keyword_groups"]:
+            matched, hits = _keyword_group_matches(text, keyword_group)
+            if not matched:
+                all_groups_matched = False
+                break
+            score += 8 + hits
+
+        if all_groups_matched and score > best_score:
+            best_rule = rule
+            best_score = score
+
+    if best_rule is None:
+        return None
+
+    return {**best_rule, "evidence_score": best_score}
 
 
 def _metadata_for_disease(cases: pd.DataFrame, disease: str) -> dict | None:
@@ -478,9 +569,23 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
 
     risk_rule = _find_emergency_risk_rule(symptom)
     anchor_rule = _find_disease_anchor_rule(symptom)
+    evidence_rule = _find_disease_evidence_rule(symptom)
 
     # classifier 신뢰도가 낮고 고위험 앵커 증상이 명확하면,
     # triage 룰이 아니라 네이버 사례 데이터의 동일 질환 메타데이터로만 보정한다.
+    if evidence_rule is not None:
+        should_use_evidence = (
+            disease_confidence is None
+            or disease_confidence < 0.45
+            or str(evidence_rule["disease"]) == str(predicted["suspected_disease"])
+            or int(evidence_rule["evidence_score"]) >= 55
+        )
+        if should_use_evidence:
+            evidence_prediction = _metadata_for_disease(cases, str(evidence_rule["disease"]))
+            if evidence_prediction is not None:
+                predicted = evidence_prediction
+                matched_by = "trained_classifier_evidence"
+
     if risk_rule is not None and (disease_confidence is None or disease_confidence < 0.5):
         anchored_prediction = _metadata_for_disease(cases, str(risk_rule["risk_disease"]))
         if anchored_prediction is not None:
@@ -543,5 +648,7 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
         "risk_rule_disease": risk_rule_disease,
         "anchor_rule_disease": "" if anchor_rule is None else str(anchor_rule["disease"]),
         "anchor_rule_score": 0 if anchor_rule is None else int(anchor_rule["anchor_score"]),
+        "evidence_rule_disease": "" if evidence_rule is None else str(evidence_rule["disease"]),
+        "evidence_rule_score": 0 if evidence_rule is None else int(evidence_rule["evidence_score"]),
         "similar_case_search_scope": search_scope,
     }
