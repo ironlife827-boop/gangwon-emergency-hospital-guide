@@ -25,6 +25,156 @@ EMERGENCY_RISK_KEYWORD_RULES = [
 ]
 
 
+DISEASE_ANCHOR_RULES = [
+    {
+        "disease": "전기손상",
+        "risk_severity_level": 5,
+        "priority": 30,
+        "keyword_groups": [["감전", "전기", "전류", "콘센트", "누전"]],
+    },
+    {
+        "disease": "뇌졸중",
+        "risk_severity_level": 5,
+        "keyword_groups": [
+            ["한쪽", "왼팔", "오른팔", "편측", "마비"],
+            ["힘이 안", "힘빠", "마비", "감각", "저림"],
+            ["말이 어눌", "말이 안", "발음", "입이", "얼굴"],
+        ],
+    },
+    {
+        "disease": "뇌졸중",
+        "risk_severity_level": 5,
+        "keyword_groups": [
+            ["갑자기", "갑작", "깨질듯", "벼락"],
+            ["두통", "머리"],
+            ["구토", "토할", "어지럼", "의식"],
+        ],
+    },
+    {
+        "disease": "아나필락시스",
+        "risk_severity_level": 5,
+        "priority": 20,
+        "keyword_groups": [
+            ["벌", "쏘인", "쏘였", "음식", "약", "알레르기"],
+            ["입술", "혀", "얼굴", "목", "붓", "두드러기"],
+            ["숨쉬기", "숨이", "호흡곤란", "쌕쌕", "어지럼"],
+        ],
+    },
+    {
+        "disease": "급성 심근경색",
+        "risk_severity_level": 5,
+        "keyword_groups": [
+            ["가슴", "흉통", "명치"],
+            ["답답", "조이", "짓누", "통증", "숨이 차", "숨차"],
+        ],
+    },
+    {
+        "disease": "복막염",
+        "risk_severity_level": 4,
+        "keyword_groups": [
+            ["배", "복부", "복통"],
+            ["찢어질", "극심", "심하게", "칼로", "움직이면"],
+            ["식은땀", "딱딱", "열", "구토"],
+        ],
+    },
+    {
+        "disease": "장폐색",
+        "risk_severity_level": 4,
+        "keyword_groups": [
+            ["배", "복부", "복통"],
+            ["팽만", "부풀", "가스", "대변", "변비"],
+            ["구토", "토", "쥐어짜"],
+        ],
+    },
+    {
+        "disease": "위장관출혈",
+        "risk_severity_level": 5,
+        "keyword_groups": [["피토", "토혈", "검은변", "혈변", "커피색"]],
+    },
+    {
+        "disease": "열사병",
+        "risk_severity_level": 5,
+        "keyword_groups": [
+            ["고열", "열", "39도", "40도", "체온"],
+            ["경련", "발작", "의식", "혼란", "쓰러"],
+        ],
+    },
+    {
+        "disease": "소아 고열 경련",
+        "risk_severity_level": 5,
+        "keyword_groups": [
+            ["아이", "아기", "소아", "어린이", "애"],
+            ["고열", "열", "39도", "40도", "체온"],
+            ["경련", "발작", "몸을 떨", "눈이 돌아"],
+        ],
+    },
+    {
+        "disease": "탈수",
+        "risk_severity_level": 4,
+        "keyword_groups": [
+            ["토", "구토", "설사", "물설사"],
+            ["탈수", "소변", "입마름", "어지럼", "기운", "축"],
+        ],
+    },
+    {
+        "disease": "기도폐쇄",
+        "risk_severity_level": 5,
+        "priority": 20,
+        "keyword_groups": [
+            ["목", "기도", "음식", "이물", "걸렸"],
+            ["숨", "말", "기침", "막힘", "못쉬"],
+        ],
+    },
+    {
+        "disease": "익수",
+        "risk_severity_level": 5,
+        "priority": 30,
+        "keyword_groups": [["물에 빠", "익수", "물 삼", "수영"], ["숨", "기침", "의식", "구조"]],
+    },
+    {
+        "disease": "약물중독",
+        "risk_severity_level": 5,
+        "priority": 20,
+        "keyword_groups": [["약", "수면제", "진통제", "복용"], ["많이", "과다", "여러", "자살", "의식"]],
+    },
+    {
+        "disease": "화학물질중독",
+        "risk_severity_level": 5,
+        "priority": 20,
+        "keyword_groups": [["락스", "세제", "농약", "화학물질", "가스"], ["마셨", "흡입", "눈", "피부", "숨"]],
+    },
+    {
+        "disease": "독사교상",
+        "risk_severity_level": 5,
+        "keyword_groups": [["뱀", "독사", "물렸"], ["붓", "통증", "어지럼", "구토"]],
+    },
+    {
+        "disease": "벌쏘임",
+        "risk_severity_level": 3,
+        "keyword_groups": [["벌", "벌침", "쏘인", "쏘였"]],
+    },
+    {
+        "disease": "급성 시력상실",
+        "risk_severity_level": 4,
+        "keyword_groups": [["눈", "시야", "시력"], ["안보", "흐려", "상실", "번쩍"]],
+    },
+]
+
+
+SAFETY_ANCHOR_METADATA = {
+    "소아 고열 경련": {
+        "symptom_group": "pediatric",
+        "department": "응급의학과",
+        "suspected_disease": "소아 고열 경련",
+    },
+    "탈수": {
+        "symptom_group": "abdominal",
+        "department": "응급의학과",
+        "suspected_disease": "탈수",
+    },
+}
+
+
 def _get_vectorizer():
     global _vectorizer, _matrix
     cases = load_naver_cases()
@@ -62,10 +212,41 @@ def _find_emergency_risk_rule(symptom: str) -> dict | None:
     return None
 
 
+def _keyword_group_matches(text: str, keywords: list[str]) -> tuple[bool, int]:
+    hits = sum(1 for keyword in keywords if _normalize_text(keyword) in text)
+    return hits > 0, hits
+
+
+def _find_disease_anchor_rule(symptom: str) -> dict | None:
+    text = _normalize_text(symptom)
+    best_rule = None
+    best_score = 0
+
+    for rule in DISEASE_ANCHOR_RULES:
+        score = int(rule.get("priority", 0))
+        all_groups_matched = True
+
+        for keyword_group in rule["keyword_groups"]:
+            matched, hits = _keyword_group_matches(text, keyword_group)
+            if not matched:
+                all_groups_matched = False
+                break
+            score += 10 + hits
+
+        if all_groups_matched and score > best_score:
+            best_rule = rule
+            best_score = score
+
+    if best_rule is None:
+        return None
+
+    return {**best_rule, "anchor_score": best_score}
+
+
 def _metadata_for_disease(cases: pd.DataFrame, disease: str) -> dict | None:
     disease_rows = cases[cases["suspected_disease"].astype(str).eq(str(disease))]
     if disease_rows.empty:
-        return None
+        return SAFETY_ANCHOR_METADATA.get(str(disease))
 
     return {
         "symptom_group": _majority_value(disease_rows, "symptom_group"),
@@ -212,6 +393,7 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
         disease_confidence = None
 
     risk_rule = _find_emergency_risk_rule(symptom)
+    anchor_rule = _find_disease_anchor_rule(symptom)
 
     # classifier 신뢰도가 낮고 고위험 앵커 증상이 명확하면,
     # triage 룰이 아니라 네이버 사례 데이터의 동일 질환 메타데이터로만 보정한다.
@@ -220,6 +402,18 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
         if anchored_prediction is not None:
             predicted = anchored_prediction
             matched_by = "trained_classifier_anchor"
+
+    if anchor_rule is not None:
+        should_anchor = (
+            disease_confidence is None
+            or disease_confidence < 0.55
+            or str(anchor_rule["disease"]) == str(predicted["suspected_disease"])
+        )
+        if should_anchor:
+            anchored_prediction = _metadata_for_disease(cases, str(anchor_rule["disease"]))
+            if anchored_prediction is not None:
+                predicted = anchored_prediction
+                matched_by = "trained_classifier_anchor"
 
     top_rows, search_scope = _select_similar_case_rows(
         cases=cases,
@@ -234,10 +428,18 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
 
     model_based_severity = _get_naver_severity_from_rows(top_rows, fallback=1)
 
-    if risk_rule is not None:
-        naver_severity = max(model_based_severity, int(risk_rule["risk_severity_level"]))
+    if risk_rule is not None or anchor_rule is not None:
+        risk_level_candidates = [model_based_severity]
+        if risk_rule is not None:
+            risk_level_candidates.append(int(risk_rule["risk_severity_level"]))
+        if anchor_rule is not None and str(anchor_rule["disease"]) == str(predicted["suspected_disease"]):
+            risk_level_candidates.append(int(anchor_rule["risk_severity_level"]))
+
+        naver_severity = max(risk_level_candidates)
         risk_rule_used = True
-        risk_rule_disease = str(risk_rule["risk_disease"])
+        risk_rule_disease = str(
+            risk_rule["risk_disease"] if risk_rule is not None else anchor_rule["disease"]
+        )
     else:
         naver_severity = model_based_severity
         risk_rule_used = False
@@ -255,5 +457,7 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
         "disease_confidence": None if disease_confidence is None else round(float(disease_confidence), 4),
         "risk_rule_used": risk_rule_used,
         "risk_rule_disease": risk_rule_disease,
+        "anchor_rule_disease": "" if anchor_rule is None else str(anchor_rule["disease"]),
+        "anchor_rule_score": 0 if anchor_rule is None else int(anchor_rule["anchor_score"]),
         "similar_case_search_scope": search_scope,
     }

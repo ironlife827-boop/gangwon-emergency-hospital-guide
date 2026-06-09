@@ -137,3 +137,13 @@ DQ_CHEMICAL_POISONING_003,화학물질중독,toxic,"의식이 흐리거나 어�
 DQ_CHEMICAL_POISONING_004,화학물질중독,toxic,"피부나 눈에 닿아 통증, 화끈거림, 시야 이상이 있나요?",피부통증;눈통증;화끈거림;시야이상,4,ER_GENERAL,4
 DQ_CHEM_001,화학물질중독,toxic,"세제, 락스, 농약, 화학물질을 마시거나 흡입했나요?",세제;락스;농약;화학물질;흡입,5,ER_GENERAL,5
 DQ_EYE_CHEM_001,화학성 안손상,eye,눈에 화학물질이 들어간 뒤 통증이나 시야 이상이 있나요?,눈;화학물질;통증;시야이상,5,ER_GENERAL,5
+DQ_PED_FEVER_SEIZURE_001,소아 고열 경련,pediatric,경련이 5분 이상 지속되었거나 반복되었나요?,경련;발작;5분;반복,5,ER_PED,5
+DQ_PED_FEVER_SEIZURE_002,소아 고열 경련,pediatric,경련 후에도 의식이 돌아오지 않거나 처져 있나요?,의식저하;처짐;반응없음;축짐,5,ER_PED,5
+DQ_PED_FEVER_SEIZURE_003,소아 고열 경련,pediatric,목이 뻣뻣하거나 심한 두통·구토가 함께 있나요?,목뻣뻣;두통;구토;수막염,5,ER_PED,5
+DQ_PED_FEVER_SEIZURE_004,소아 고열 경련,pediatric,생후 6개월 미만이거나 기저질환이 있나요?,6개월미만;영아;기저질환;어림,4,ER_PED,4
+DQ_PED_FEVER_SEIZURE_005,소아 고열 경련,pediatric,체온이 39도 이상이거나 해열 후에도 계속 오르나요?,39도;40도;고열;해열;열,4,ER_PED,4
+DQ_DEHYDRATION_001,탈수,abdominal,구토나 설사가 반복되어 물도 유지하기 어렵나요?,구토;설사;반복;물;못먹음,4,ER_GENERAL,5
+DQ_DEHYDRATION_002,탈수,abdominal,소변량이 크게 줄었거나 8시간 이상 소변을 보지 못했나요?,소변감소;소변안나옴;8시간;탈수,5,ER_GENERAL,5
+DQ_DEHYDRATION_003,탈수,abdominal,입이 마르고 어지럽거나 일어서기 힘든가요?,입마름;어지럼;기립;기운없음,4,ER_GENERAL,4
+DQ_DEHYDRATION_004,탈수,abdominal,피가 섞인 설사나 심한 복통·고열이 함께 있나요?,혈변;피섞인설사;복통;고열,5,ER_GENERAL,5
+DQ_DEHYDRATION_005,탈수,abdominal,영유아·고령자이거나 만성질환이 있나요?,영유아;고령;만성질환;기저질환,4,ER_GENERAL,4
