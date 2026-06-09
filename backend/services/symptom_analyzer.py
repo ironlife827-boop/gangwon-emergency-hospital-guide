@@ -12,77 +12,28 @@ _vectorizer: TfidfVectorizer | None = None
 _matrix = None
 
 
-EMERGENCY_KEYWORD_RULES = [
-    {
-        "keywords": ["감전", "전기", "전류", "콘센트", "누전"],
-        "symptom_group": "trauma",
-        "department": "응급의학과",
-        "suspected_disease": "전기손상",
-        "naver_severity_level": 4,
-    },
-    {
-        "keywords": ["화상", "데임", "데였", "끓는물", "뜨거운", "불에"],
-        "symptom_group": "trauma",
-        "department": "응급의학과",
-        "suspected_disease": "화상",
-        "naver_severity_level": 4,
-    },
-    {
-        "keywords": ["중독", "약을 많이", "농약", "독극물", "화학물질", "세제", "락스"],
-        "symptom_group": "toxic",
-        "department": "응급의학과",
-        "suspected_disease": "화학물질중독",
-        "naver_severity_level": 5,
-    },
-    {
-        "keywords": ["물에 빠", "익수", "잠겼", "호흡이 없", "숨을 안"],
-        "symptom_group": "respiratory",
-        "department": "응급의학과",
-        "suspected_disease": "익수",
-        "naver_severity_level": 5,
-    },
-    {
-        "keywords": ["피가 멈추지", "출혈", "피를 많이", "피가 계속", "대량 출혈"],
-        "symptom_group": "bleeding",
-        "department": "응급의학과",
-        "suspected_disease": "대량출혈",
-        "naver_severity_level": 5,
-    },
-    {
-        "keywords": ["의식이 없", "반응이 없", "깨워도", "쓰러졌", "기절"],
-        "symptom_group": "cardio",
-        "department": "응급의학과",
-        "suspected_disease": "심정지",
-        "naver_severity_level": 5,
-    },
-    {
-        "keywords": ["한쪽 팔", "한쪽 다리", "말이 어눌", "마비", "얼굴 비대칭"],
-        "symptom_group": "neuro",
-        "department": "신경과",
-        "suspected_disease": "뇌졸중",
-        "naver_severity_level": 5,
-    },
-    {
-        "keywords": ["벌에쏘", "벌쏘", "벌침", "입술이붓", "얼굴이붓", "온몸이붓", "두드러기"],
-        "symptom_group": "allergy",
-        "department": "알레르기내과",
-        "suspected_disease": "아나필락시스",
-        "naver_severity_level": 5,
-    },
+# 질환 판단용이 아니라 위험도 보정용 안전장치
+EMERGENCY_RISK_KEYWORD_RULES = [
+    {"keywords": ["감전", "전기", "전류", "콘센트", "누전"], "risk_disease": "전기손상", "risk_severity_level": 5},
+    {"keywords": ["화상", "데임", "데였", "끓는물", "뜨거운", "불에"], "risk_disease": "화상", "risk_severity_level": 4},
+    {"keywords": ["중독", "약을 많이", "농약", "독극물", "화학물질", "세제", "락스"], "risk_disease": "화학물질중독", "risk_severity_level": 5},
+    {"keywords": ["물에 빠", "익수", "잠겼", "호흡이 없", "숨을 안"], "risk_disease": "익수", "risk_severity_level": 5},
+    {"keywords": ["피가 멈추지", "출혈", "피를 많이", "피가 계속", "대량 출혈"], "risk_disease": "대량출혈", "risk_severity_level": 5},
+    {"keywords": ["의식이 없", "반응이 없", "깨워도", "쓰러졌", "기절"], "risk_disease": "심정지", "risk_severity_level": 5},
+    {"keywords": ["한쪽 팔", "한쪽 다리", "말이 어눌", "마비", "얼굴 비대칭", "입이 한쪽"], "risk_disease": "뇌졸중", "risk_severity_level": 5},
+    {"keywords": ["벌에쏘", "벌쏘", "벌침", "입술이붓", "얼굴이붓", "온몸이붓", "두드러기"], "risk_disease": "아나필락시스", "risk_severity_level": 5},
 ]
 
 
 def _get_vectorizer():
     global _vectorizer, _matrix
-
     cases = load_naver_cases()
 
     if _vectorizer is None or _matrix is None:
         _vectorizer = TfidfVectorizer(
             analyzer="char_wb",
-            ngram_range=(2, 5),
+            ngram_range=(2, 4),
             min_df=1,
-            sublinear_tf=True,
         )
         _matrix = _vectorizer.fit_transform(cases["search_text"].astype(str).tolist())
 
@@ -100,13 +51,12 @@ def _normalize_text(value: str) -> str:
     return str(value).lower().replace(" ", "").replace(",", "").replace(".", "")
 
 
-def _find_keyword_override(symptom: str) -> dict | None:
+def _find_emergency_risk_rule(symptom: str) -> dict | None:
     text = _normalize_text(symptom)
 
-    for rule in EMERGENCY_KEYWORD_RULES:
+    for rule in EMERGENCY_RISK_KEYWORD_RULES:
         for keyword in rule["keywords"]:
-            normalized_keyword = _normalize_text(keyword)
-            if normalized_keyword in text:
+            if _normalize_text(keyword) in text:
                 return rule
 
     return None
@@ -118,14 +68,23 @@ def _predict_with_trained_classifier(symptom: str) -> dict | None:
         return None
 
     try:
-        symptom_group = str(classifier["symptom_group_model"].predict([symptom])[0])
-        department = str(classifier["department_model"].predict([symptom])[0])
-        suspected_disease = str(classifier["disease_model"].predict([symptom])[0])
+        symptom_group_model = classifier["symptom_group_model"]
+        department_model = classifier["department_model"]
+        disease_model = classifier["disease_model"]
+
+        symptom_group = str(symptom_group_model.predict([symptom])[0])
+        department = str(department_model.predict([symptom])[0])
+        suspected_disease = str(disease_model.predict([symptom])[0])
+
+        disease_confidence = None
+        if hasattr(disease_model, "predict_proba"):
+            disease_confidence = float(max(disease_model.predict_proba([symptom])[0]))
 
         return {
             "symptom_group": symptom_group,
             "department": department,
             "suspected_disease": suspected_disease,
+            "disease_confidence": disease_confidence,
         }
     except Exception:
         return None
@@ -153,21 +112,25 @@ def _build_similar_cases(top_rows: pd.DataFrame) -> list[SimilarCase]:
 
 def _rank_rows_by_similarity(cases: pd.DataFrame, sims, candidate_mask, top_k: int) -> pd.DataFrame:
     candidate_indices = cases.index[candidate_mask].tolist()
-
     if not candidate_indices:
         return pd.DataFrame(columns=list(cases.columns) + ["similarity"])
 
     ranked_indices = sorted(candidate_indices, key=lambda idx: float(sims[idx]), reverse=True)[:top_k]
-
     rows = cases.loc[ranked_indices].copy()
     rows["similarity"] = [float(sims[idx]) for idx in ranked_indices]
-
     return rows
 
 
-def _select_similar_case_rows(cases: pd.DataFrame, sims, predicted_disease: str, predicted_group: str, top_k: int) -> pd.DataFrame:
+def _select_similar_case_rows(
+    cases: pd.DataFrame,
+    sims,
+    predicted_disease: str,
+    predicted_group: str,
+    top_k: int,
+) -> tuple[pd.DataFrame, str]:
     selected_parts: list[pd.DataFrame] = []
     used_indices: set[int] = set()
+    search_scope = "disease"
 
     disease_mask = cases["suspected_disease"].astype(str).eq(str(predicted_disease))
     disease_rows = _rank_rows_by_similarity(cases, sims, disease_mask, top_k)
@@ -175,72 +138,58 @@ def _select_similar_case_rows(cases: pd.DataFrame, sims, predicted_disease: str,
     used_indices.update(disease_rows.index.tolist())
 
     if sum(len(part) for part in selected_parts) < top_k:
+        search_scope = "disease+group"
         remaining = top_k - sum(len(part) for part in selected_parts)
-        group_mask = cases["symptom_group"].astype(str).eq(str(predicted_group)) & ~cases.index.isin(used_indices)
+        group_mask = (
+            cases["symptom_group"].astype(str).eq(str(predicted_group))
+            & ~cases.index.isin(used_indices)
+        )
         group_rows = _rank_rows_by_similarity(cases, sims, group_mask, remaining)
         selected_parts.append(group_rows)
         used_indices.update(group_rows.index.tolist())
 
     if sum(len(part) for part in selected_parts) < top_k:
+        search_scope = "disease+group+fallback"
         remaining = top_k - sum(len(part) for part in selected_parts)
         fallback_mask = ~cases.index.isin(used_indices)
         fallback_rows = _rank_rows_by_similarity(cases, sims, fallback_mask, remaining)
         selected_parts.append(fallback_rows)
 
     selected = pd.concat([part for part in selected_parts if not part.empty], axis=0)
-
-    return selected.head(top_k).copy()
+    return selected.head(top_k).copy(), search_scope
 
 
 def _get_naver_severity_from_rows(rows: pd.DataFrame, fallback: int = 1) -> int:
     if rows.empty:
         return fallback
+
     value = int(round(float(rows["severity_level"].mean())))
     return max(1, min(5, value))
-
-
-def _build_enriched_query(symptom: str, predicted: dict) -> str:
-    # 모델이 이미 예측한 질환/진료과/증상군을 검색 질의에 보강한다.
-    # 이렇게 하면 같은 질환군의 실제 사례가 더 안정적으로 상위에 노출된다.
-    disease = str(predicted.get("suspected_disease", ""))
-    group = str(predicted.get("symptom_group", ""))
-    department = str(predicted.get("department", ""))
-
-    return " ".join([
-        str(symptom),
-        disease,
-        disease,
-        disease,
-        group,
-        department,
-    ]).strip()
 
 
 def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
     cases = load_naver_cases()
     vectorizer, matrix = _get_vectorizer()
 
-    keyword_override = _find_keyword_override(symptom)
+    query_vec = vectorizer.transform([symptom])
+    sims = cosine_similarity(query_vec, matrix).ravel()
+
+    # 1순위: 네이버 기반 학습 모델을 항상 먼저 사용
     trained_prediction = _predict_with_trained_classifier(symptom)
 
-    if keyword_override is not None:
+    if trained_prediction is not None:
         predicted = {
-            "symptom_group": keyword_override["symptom_group"],
-            "department": keyword_override["department"],
-            "suspected_disease": keyword_override["suspected_disease"],
+            "symptom_group": trained_prediction["symptom_group"],
+            "department": trained_prediction["department"],
+            "suspected_disease": trained_prediction["suspected_disease"],
         }
-        matched_by = "keyword_rule"
-        fallback_severity = int(keyword_override["naver_severity_level"])
-    elif trained_prediction is not None:
-        predicted = trained_prediction
         matched_by = "trained_classifier"
-        fallback_severity = 1
+        disease_confidence = trained_prediction.get("disease_confidence")
     else:
-        base_vec = vectorizer.transform([symptom])
-        base_sims = cosine_similarity(base_vec, matrix).ravel()
-        all_indices = base_sims.argsort()[::-1][:top_k]
+        # 모델이 없거나 로딩 실패한 경우에만 유사사례 fallback
+        all_indices = sims.argsort()[::-1][:top_k]
         all_top_rows = cases.iloc[all_indices].copy()
-        all_top_rows["similarity"] = base_sims[all_indices]
+        all_top_rows["similarity"] = sims[all_indices]
 
         predicted = {
             "symptom_group": _majority_value(all_top_rows, "symptom_group", "etc"),
@@ -248,13 +197,12 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
             "suspected_disease": _majority_value(all_top_rows, "suspected_disease", "일반 증상"),
         }
         matched_by = "similarity"
-        fallback_severity = _get_naver_severity_from_rows(all_top_rows, fallback=1)
+        disease_confidence = None
 
-    enriched_query = _build_enriched_query(symptom, predicted)
-    query_vec = vectorizer.transform([enriched_query])
-    sims = cosine_similarity(query_vec, matrix).ravel()
+    # 응급 키워드는 질환을 덮어쓰지 않고 위험도만 보정
+    risk_rule = _find_emergency_risk_rule(symptom)
 
-    top_rows = _select_similar_case_rows(
+    top_rows, search_scope = _select_similar_case_rows(
         cases=cases,
         sims=sims,
         predicted_disease=predicted["suspected_disease"],
@@ -265,11 +213,16 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
     similar_cases = _build_similar_cases(top_rows)
     max_similarity = float(top_rows["similarity"].max()) if len(top_rows) else 0.0
 
-    naver_severity = (
-        int(keyword_override["naver_severity_level"])
-        if keyword_override is not None
-        else _get_naver_severity_from_rows(top_rows, fallback=fallback_severity)
-    )
+    model_based_severity = _get_naver_severity_from_rows(top_rows, fallback=1)
+
+    if risk_rule is not None:
+        naver_severity = max(model_based_severity, int(risk_rule["risk_severity_level"]))
+        risk_rule_used = True
+        risk_rule_disease = str(risk_rule["risk_disease"])
+    else:
+        naver_severity = model_based_severity
+        risk_rule_used = False
+        risk_rule_disease = ""
 
     return {
         "symptom_group": predicted["symptom_group"],
@@ -279,4 +232,9 @@ def analyze_symptom_text(symptom: str, top_k: int = 5) -> dict:
         "max_similarity": round(max_similarity, 4),
         "similar_cases": similar_cases,
         "matched_by": matched_by,
+        "model_used": trained_prediction is not None,
+        "disease_confidence": None if disease_confidence is None else round(float(disease_confidence), 4),
+        "risk_rule_used": risk_rule_used,
+        "risk_rule_disease": risk_rule_disease,
+        "similar_case_search_scope": search_scope,
     }
