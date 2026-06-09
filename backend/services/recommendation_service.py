@@ -10,6 +10,7 @@ import pandas as pd
 from schemas.triage import RecommendedHospital
 from services.data_loader import load_beds, load_eta_model, load_hospitals
 from services.eta_service import get_kakao_driving_eta
+from services.realtime_bed_service import get_realtime_bed_map
 
 
 DEFAULT_USER_LAT = 37.8813153  # 춘천시청 인근 기본 좌표
@@ -199,13 +200,25 @@ def recommend_hospitals(
         ascending=[False, False, False, True],
     ).head(limit)
 
+    realtime_bed_map = get_realtime_bed_map()
     bed_map = {}
     if not beds.empty:
         bed_map = dict(zip(beds["hospital_name"], beds["hvec"]))
 
     recommendations: list[RecommendedHospital] = []
     for rank, (_, row) in enumerate(hospitals.iterrows(), start=1):
-        available_beds = int(bed_map.get(row["hospital_name"], 0))
+        realtime_bed = realtime_bed_map.get(str(row.get("hospital_id", ""))) or realtime_bed_map.get(
+            str(row["hospital_name"])
+        )
+        if realtime_bed is not None:
+            available_beds = int(realtime_bed.emergency_beds)
+            bed_source = realtime_bed.source
+            bed_updated_at = realtime_bed.updated_at
+        else:
+            available_beds = int(bed_map.get(row["hospital_name"], 0))
+            bed_source = "static_csv"
+            bed_updated_at = None
+
         reason_parts = []
 
         if int(row.get("is_emergency", 0)) == 1:
@@ -221,6 +234,8 @@ def recommend_hospitals(
                 eta_min=int(row["eta_min"]),
                 eta_source=str(row.get("eta_source", "estimated")),
                 available_beds=available_beds,
+                bed_source=bed_source,
+                bed_updated_at=bed_updated_at,
                 recommendation_score=int(row["recommendation_score"]),
                 reason=" · ".join(reason_parts),
                 department=str(row.get("department", "")),

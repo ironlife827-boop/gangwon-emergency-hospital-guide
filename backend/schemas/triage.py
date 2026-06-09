@@ -66,6 +66,8 @@ class RecommendedHospital(BaseModel):
     eta_min: int
     eta_source: str = "estimated"
     available_beds: int
+    bed_source: str = "static"
+    bed_updated_at: str | None = None
     recommendation_score: int
     reason: str
     department: str | None = None

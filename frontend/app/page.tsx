@@ -41,6 +41,8 @@ type RecommendedHospital = {
   eta_min: number;
   eta_source?: string;
   available_beds: number;
+  bed_source?: string;
+  bed_updated_at?: string | null;
   recommendation_score: number;
   reason: string;
   department?: string | null;

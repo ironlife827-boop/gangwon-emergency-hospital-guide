@@ -1,4 +1,4 @@
-﻿symptom_group,question_id,question,answer_option,risk_score,suspected_disease,required_resource_code
+symptom_group,question_id,question,answer_option,risk_score,suspected_disease,required_resource_code
 neuro,Q0001,급성의식장애 증상이 있습니까?,예,5.0,뇌졸중,ER_NEURO
 neuro,Q0002,급성신경학적 이상 증상이 있습니까?,예,4.0,뇌졸중,ER_NEURO
 neuro,Q0003,구토·의식장애 등의 증상이 있는 두부손상 증상이 있습니까?,예,3.0,외상성 뇌손상,ER_NEURO
@@ -58,3 +58,57 @@ foreign_body,Q0056,귀 이물 증상이 있습니까?,예,2.0,귀 이물,ER_ENT
 foreign_body,Q0057,눈 이물 증상이 있습니까?,예,2.0,눈 이물,ER_OPHTHAL
 foreign_body,Q0058,코 이물 증상이 있습니까?,예,2.0,코 이물,ER_ENT
 foreign_body,Q0059,항문 이물 증상이 있습니까?,예,2.0,항문 이물,ER_SURGERY
+trauma,TRIAGE_EXP_EXP001_001,뇌진탕 의심 두부손상 관련 고위험 증상이 있습니까?,예,5,뇌진탕 의심 두부손상,ER_TRAUMA
+trauma,TRIAGE_EXP_EXP002_001,외상성 뇌손상 관련 고위험 증상이 있습니까?,예,5,외상성 뇌손상,ER_TRAUMA
+trauma,TRIAGE_EXP_EXP003_001,경추손상 관련 고위험 증상이 있습니까?,예,5,경추손상,ER_TRAUMA
+trauma,TRIAGE_EXP_EXP004_001,척추손상 관련 고위험 증상이 있습니까?,예,5,척추손상,ER_TRAUMA
+trauma,TRIAGE_EXP_EXP005_001,다발성외상 관련 고위험 증상이 있습니까?,예,5,다발성외상,ER_TRAUMA
+trauma,TRIAGE_EXP_EXP006_001,개방성 골절 관련 고위험 증상이 있습니까?,예,5,개방성 골절,ER_TRAUMA
+trauma,TRIAGE_EXP_EXP007_001,절단손상 관련 고위험 증상이 있습니까?,예,5,절단손상,ER_TRAUMA
+trauma,TRIAGE_EXP_EXP008_001,압궤손상 관련 고위험 증상이 있습니까?,예,5,압궤손상,ER_TRAUMA
+trauma,TRIAGE_EXP_EXP009_001,안면외상 관련 고위험 증상이 있습니까?,예,4,안면외상,ER_TRAUMA
+respiratory,TRIAGE_EXP_EXP010_001,고열 동반 호흡곤란 관련 고위험 증상이 있습니까?,예,5,고열 동반 호흡곤란,ER_RESP
+respiratory,TRIAGE_EXP_EXP011_001,폐렴 의심 고열 관련 고위험 증상이 있습니까?,예,4,폐렴 의심 고열,ER_RESP
+respiratory,TRIAGE_EXP_EXP012_001,천식 악화 관련 고위험 증상이 있습니까?,예,5,천식 악화,ER_RESP
+respiratory,TRIAGE_EXP_EXP013_001,COPD 급성악화 관련 고위험 증상이 있습니까?,예,5,COPD 급성악화,ER_RESP
+respiratory,TRIAGE_EXP_EXP014_001,기흉 관련 고위험 증상이 있습니까?,예,5,기흉,ER_RESP
+respiratory,TRIAGE_EXP_EXP015_001,폐색전증 관련 고위험 증상이 있습니까?,예,5,폐색전증,ER_RESP
+cardio,TRIAGE_EXP_EXP016_001,급성 심부전 관련 고위험 증상이 있습니까?,예,5,급성 심부전,ER_CARDIO
+cardio,TRIAGE_EXP_EXP017_001,대동맥박리 관련 고위험 증상이 있습니까?,예,5,대동맥박리,ER_CARDIO
+cardio,TRIAGE_EXP_EXP018_001,고혈압성 응급 관련 고위험 증상이 있습니까?,예,5,고혈압성 응급,ER_CARDIO
+neuro,TRIAGE_EXP_EXP019_001,실신 관련 고위험 증상이 있습니까?,예,4,실신,ER_NEURO
+neuro,TRIAGE_EXP_EXP020_001,경련 발작 관련 고위험 증상이 있습니까?,예,5,경련 발작,ER_NEURO
+neuro,TRIAGE_EXP_EXP021_001,수막염 의심 관련 고위험 증상이 있습니까?,예,5,수막염 의심,ER_NEURO
+neuro,TRIAGE_EXP_EXP022_001,편두통 위험징후 관련 고위험 증상이 있습니까?,예,4,편두통 위험징후,ER_NEURO
+abdominal,TRIAGE_EXP_EXP023_001,급성 충수염 관련 고위험 증상이 있습니까?,예,4,급성 충수염,ER_GENERAL
+abdominal,TRIAGE_EXP_EXP024_001,담낭염 관련 고위험 증상이 있습니까?,예,4,담낭염,ER_GENERAL
+urology,TRIAGE_EXP_EXP025_001,요로결석 관련 고위험 증상이 있습니까?,예,4,요로결석,ER_GENERAL
+urology,TRIAGE_EXP_EXP026_001,급성 신우신염 관련 고위험 증상이 있습니까?,예,4,급성 신우신염,ER_GENERAL
+urology,TRIAGE_EXP_EXP027_001,고환염전 관련 고위험 증상이 있습니까?,예,5,고환염전,ER_GENERAL
+abdominal,TRIAGE_EXP_EXP028_001,노로바이러스 의심 급성 위장염 관련 고위험 증상이 있습니까?,예,4,노로바이러스 의심 급성 위장염,ER_GENERAL
+abdominal,TRIAGE_EXP_EXP029_001,식중독 관련 고위험 증상이 있습니까?,예,4,식중독,ER_GENERAL
+abdominal,TRIAGE_EXP_EXP030_001,중증 탈수 관련 고위험 증상이 있습니까?,예,5,중증 탈수,ER_GENERAL
+toxic,TRIAGE_EXP_EXP031_001,저혈당 관련 고위험 증상이 있습니까?,예,5,저혈당,ER_GENERAL
+toxic,TRIAGE_EXP_EXP032_001,고혈당성 응급 관련 고위험 증상이 있습니까?,예,5,고혈당성 응급,ER_GENERAL
+infection,TRIAGE_EXP_EXP033_001,패혈증 의심 관련 고위험 증상이 있습니까?,예,5,패혈증 의심,ER_GENERAL
+pediatric,TRIAGE_EXP_EXP034_001,열성경련 관련 고위험 증상이 있습니까?,예,5,열성경련,ER_PED
+pediatric,TRIAGE_EXP_EXP035_001,영아 호흡곤란 관련 고위험 증상이 있습니까?,예,5,영아 호흡곤란,ER_PED
+pediatric,TRIAGE_EXP_EXP036_001,소아 탈수 관련 고위험 증상이 있습니까?,예,4,소아 탈수,ER_PED
+obgy,TRIAGE_EXP_EXP037_001,임신 중 복통출혈 관련 고위험 증상이 있습니까?,예,5,임신 중 복통출혈,ER_OBGY
+obgy,TRIAGE_EXP_EXP038_001,자궁외임신 의심 관련 고위험 증상이 있습니까?,예,5,자궁외임신 의심,ER_OBGY
+obgy,TRIAGE_EXP_EXP039_001,분만 임박 관련 고위험 증상이 있습니까?,예,5,분만 임박,ER_OBGY
+psychiatric,TRIAGE_EXP_EXP040_001,자살위험 관련 고위험 증상이 있습니까?,예,5,자살위험,ER_GENERAL
+psychiatric,TRIAGE_EXP_EXP041_001,공황발작 관련 고위험 증상이 있습니까?,예,4,공황발작,ER_GENERAL
+psychiatric,TRIAGE_EXP_EXP042_001,섬망 의심 관련 고위험 증상이 있습니까?,예,4,섬망 의심,ER_GENERAL
+eye,TRIAGE_EXP_EXP043_001,눈 화학손상 관련 고위험 증상이 있습니까?,예,5,눈 화학손상,ER_GENERAL
+eye,TRIAGE_EXP_EXP044_001,망막박리 의심 관련 고위험 증상이 있습니까?,예,4,망막박리 의심,ER_GENERAL
+eye,TRIAGE_EXP_EXP045_001,각막손상 관련 고위험 증상이 있습니까?,예,4,각막손상,ER_GENERAL
+foreign_body,TRIAGE_EXP_EXP046_001,기도 이물 관련 고위험 증상이 있습니까?,예,5,기도 이물,ER_GENERAL
+foreign_body,TRIAGE_EXP_EXP047_001,식도 이물 관련 고위험 증상이 있습니까?,예,4,식도 이물,ER_GENERAL
+allergy,TRIAGE_EXP_EXP048_001,아나필락시스 관련 고위험 증상이 있습니까?,예,5,아나필락시스,ER_GENERAL
+allergy,TRIAGE_EXP_EXP049_001,혈관부종 관련 고위험 증상이 있습니까?,예,5,혈관부종,ER_GENERAL
+toxic,TRIAGE_EXP_EXP050_001,저체온증 관련 고위험 증상이 있습니까?,예,5,저체온증,ER_GENERAL
+toxic,TRIAGE_EXP_EXP051_001,열사병 관련 고위험 증상이 있습니까?,예,5,열사병,ER_GENERAL
+toxic,TRIAGE_EXP_EXP052_001,일산화탄소중독 관련 고위험 증상이 있습니까?,예,5,일산화탄소중독,ER_GENERAL
+toxic,TRIAGE_EXP_EXP053_001,화학물질중독 관련 고위험 증상이 있습니까?,예,5,화학물질중독,ER_GENERAL
+toxic,TRIAGE_EXP_EXP054_001,알코올중독 관련 고위험 증상이 있습니까?,예,4,알코올중독,ER_GENERAL
