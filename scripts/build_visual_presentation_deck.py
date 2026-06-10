@@ -136,17 +136,24 @@ def draw_check(draw, x, y, text, color=CYAN, size=30):
 
 def draw_gangwon_map(draw, box):
     x1, y1, x2, y2 = box
+    scale = min((x2 - x1) / 720, (y2 - y1) / 660)
+    ox = x1 + ((x2 - x1) - 720 * scale) / 2
+    oy = y1 + ((y2 - y1) - 660 * scale) / 2
+
+    def p(dx, dy):
+        return (ox + dx * scale, oy + dy * scale)
+
     pts = [
-        (x1 + 210, y1 + 30), (x1 + 520, y1 + 80), (x1 + 650, y1 + 240),
-        (x1 + 590, y1 + 470), (x1 + 405, y1 + 620), (x1 + 230, y1 + 560),
-        (x1 + 120, y1 + 410), (x1 + 60, y1 + 210),
+        p(210, 30), p(520, 80), p(650, 240),
+        p(590, 470), p(405, 620), p(230, 560),
+        p(120, 410), p(60, 210),
     ]
     draw.polygon(pts, fill="#eafcff")
     draw.line(pts + [pts[0]], fill=CYAN, width=5, joint="curve")
     vulnerable = [
-        [(x1 + 155, y1 + 170), (x1 + 335, y1 + 175), (x1 + 355, y1 + 335), (x1 + 170, y1 + 355)],
-        [(x1 + 365, y1 + 310), (x1 + 555, y1 + 295), (x1 + 560, y1 + 500), (x1 + 360, y1 + 485)],
-        [(x1 + 115, y1 + 405), (x1 + 300, y1 + 420), (x1 + 275, y1 + 570), (x1 + 135, y1 + 545)],
+        [p(155, 170), p(335, 175), p(355, 335), p(170, 355)],
+        [p(365, 310), p(555, 295), p(560, 500), p(360, 485)],
+        [p(115, 405), p(300, 420), p(275, 570), p(135, 545)],
     ]
     for zone in vulnerable:
         draw.polygon(zone, fill="#ffd76b")
@@ -159,14 +166,12 @@ def draw_gangwon_map(draw, box):
     min_lat, max_lat = 37.0, 38.35
     min_lon, max_lon = 127.55, 129.30
     for lat, lon in sites:
-        sx = x1 + 110 + (lon - min_lon) / (max_lon - min_lon) * 500
-        sy = y1 + 560 - (lat - min_lat) / (max_lat - min_lat) * 480
-        draw.ellipse((sx - 12, sy - 12, sx + 12, sy + 12), fill=RED, outline=WHITE, width=4)
-    draw.rounded_rectangle((x1 + 245, y2 - 58, x1 + 680, y2 - 10), radius=22, fill=WHITE, outline=LINE, width=2)
-    draw.ellipse((x1 + 272, y2 - 43, x1 + 294, y2 - 21), fill=RED, outline=WHITE, width=2)
-    draw.text((x1 + 312, y2 - 32), "응급의료기관", font=f(22, True), fill=RED, anchor="lm")
-    draw.rectangle((x1 + 500, y2 - 43, x1 + 530, y2 - 21), fill="#ffd76b", outline="#e8a900", width=2)
-    draw.text((x1 + 545, y2 - 32), "의료취약권역", font=f(22, True), fill=INK, anchor="lm")
+        sx, sy = p(
+            110 + (lon - min_lon) / (max_lon - min_lon) * 500,
+            560 - (lat - min_lat) / (max_lat - min_lat) * 480,
+        )
+        r = 12 * scale
+        draw.ellipse((sx - r, sy - r, sx + r, sy + r), fill=RED, outline=WHITE, width=max(2, int(4 * scale)))
 
 
 def draw_bar_chart(draw, origin, size, rows, highlight_label):
@@ -251,7 +256,13 @@ def slide_03_region_need():
     img = canvas()
     d = ImageDraw.Draw(img)
     title(d, "왜 강원도 맞춤형 시스템이 필요한가?", "지역 의료 접근성 차이 때문에 단순 병원 검색으로는 부족하다")
-    draw_gangwon_map(d, (95, 250, 820, 870))
+    rounded(d, (95, 250, 820, 790), 38, WHITE, LINE)
+    draw_gangwon_map(d, (145, 295, 770, 755))
+    rounded(d, (180, 820, 740, 890), 24, WHITE, LINE)
+    d.ellipse((220, 842, 248, 870), fill=RED, outline=WHITE, width=3)
+    d.text((268, 856), "응급의료기관", font=f(24, True), fill=RED, anchor="lm")
+    d.rectangle((460, 843, 492, 869), fill="#ffd76b", outline="#e8a900", width=2)
+    d.text((512, 856), "의료취약권역", font=f(24, True), fill=INK, anchor="lm")
     items = [
         ("산간지역 비율이 높음", "생활권과 병원권이 일치하지 않는 경우 발생"),
         ("응급의료기관 분포 불균형", "응급실 보유 병원이 일부 도시에 집중"),
@@ -260,9 +271,9 @@ def slide_03_region_need():
     ]
     for i, (head, body) in enumerate(items):
         y = 285 + i * 145
-        rounded(d, (920, y, 1765, y + 105), 28, WHITE, LINE)
-        d.text((960, y + 35), head, font=f(32, True), fill=NAVY)
-        d.text((960, y + 76), body, font=f(23), fill=MUTED)
+        rounded(d, (930, y, 1765, y + 112), 28, WHITE, LINE)
+        d.text((985, y + 38), head, font=f(31, True), fill=NAVY)
+        d.text((985, y + 82), body, font=f(23), fill=MUTED)
     rounded(d, (910, 850, 1775, 935), 28, NAVY, NAVY)
     d.text((1342, 892), "그래서: 증상 판단 + 병원 필터링 + ETA 예측이 함께 필요", font=f(31, True), fill=WHITE, anchor="mm")
     footer(d, 4)
