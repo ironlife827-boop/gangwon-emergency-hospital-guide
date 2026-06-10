@@ -103,6 +103,37 @@ def save_data_role_diagram() -> None:
     img.save(ASSETS / "data_role_diagram.png")
 
 
+def save_system_pipeline_diagram() -> None:
+    img = Image.new("RGB", (1600, 760), "#f3f7fb")
+    d = ImageDraw.Draw(img)
+    d.text((80, 62), "전체 시스템 파이프라인", fill="#10213b", font=font(52, True))
+    d.text((82, 130), "사용자 증상 입력부터 최종 병원 추천까지 하나의 흐름으로 연결", fill="#61728a", font=font(25))
+
+    steps = [
+        ("증상 입력", "자연어 문장\n위치 설정", "#12c6dc"),
+        ("모델 예측", "증상군·진료과\n질환 TOP3", "#25d0a0"),
+        ("추가 문진", "질환별 질문\nTop 1~4", "#ffc247"),
+        ("응급도 계산", "red flag\nrisk_score", "#ff4d5d"),
+        ("병원 추천", "진료과·병상\n거리·ETA", "#2b6eff"),
+    ]
+    y = 330
+    for i, (head, body, color) in enumerate(steps):
+        x = 85 + i * 300
+        d.rounded_rectangle((x, y, x + 230, y + 190), radius=28, fill="white", outline="#cfe0ee", width=3)
+        d.rounded_rectangle((x + 30, y + 30, x + 200, y + 82), radius=24, fill=color)
+        d.text((x + 115, y + 56), head, fill="white" if color in ["#ff4d5d", "#2b6eff"] else "#10213b", font=font(25, True), anchor="mm")
+        d.multiline_text((x + 115, y + 130), body, fill="#10213b", font=font(24, True), anchor="mm", align="center", spacing=7)
+        if i < len(steps) - 1:
+            x1 = x + 242
+            x2 = x + 288
+            d.line((x1, y + 95, x2, y + 95), fill="#12c6dc", width=8)
+            d.polygon([(x2, y + 95), (x2 - 20, y + 82), (x2 - 20, y + 108)], fill="#12c6dc")
+
+    d.rounded_rectangle((235, 610, 1365, 690), radius=30, fill="#07162d")
+    d.text((800, 650), "질환 예측은 모델 중심 · 응급도 데이터는 위험도 계산 보조", fill="white", font=font(31, True), anchor="mm")
+    img.save(ASSETS / "system_pipeline_diagram.png")
+
+
 def save_code_snippet_image(filename: str, title: str, code: str) -> None:
     lines = code.strip("\n").splitlines()
     line_h = 34
@@ -125,6 +156,7 @@ def generate_assets() -> None:
     save_chart_data_summary()
     save_model_comparison_chart()
     save_data_role_diagram()
+    save_system_pipeline_diagram()
     save_code_snippet_image(
         "code_model_training.png",
         "모델 학습 코드 핵심",
@@ -306,7 +338,7 @@ def build_html() -> str:
         "1.2. 시스템 개요",
         f"""
         <p>사용자는 증상을 입력하고 위치를 설정한다. 백엔드는 학습된 <b>symptom_classifier.pkl</b>을 우선 사용하여 증상군, 진료과, 의심 질환 TOP3를 예측한다. 이후 disease_question_map에서 질환별 질문을 랭킹하여 최소 1~4개의 문진만 제시한다.</p>
-        {img_tag('presentation_assets/visual_slides/slide_04.png', '그림 1. 전체 시스템 파이프라인')}
+        {img_tag('team_report_assets/system_pipeline_diagram.png', '그림 1. 전체 시스템 파이프라인')}
         <p>응급도는 질환 예측 모델이 아니라 red flag와 문진 답변의 risk_score로 별도 계산한다. 이 구조는 질환 판단 데이터와 응급도 보조 데이터를 분리하기 위한 설계이다.</p>
         <p>초기 구현에서는 응급 룰 데이터가 질환 판단에도 영향을 주면서, “숨쉬기 힘들다”라는 키워드만 보고 익수처럼 전혀 다른 상황을 의심하는 문제가 있었다. 이를 개선하기 위해 질환 판단은 네이버 지식인 기반 증상 모델과 disease_master 중심으로 수행하고, triage_rule_dataset은 fallback 및 위험도 보조 용도로 제한했다.</p>
         <p>또한 사용자 입력에 이미 포함된 정보는 다시 질문하지 않도록 positive_keywords 기반 중복 제거를 적용했다. 예를 들어 사용자가 이미 “입술이 붓고 숨쉬기 힘들다”고 입력했다면, 해당 정보를 반복 확인하는 질문보다 노출 음식, 전신 두드러기, 의식 저하처럼 부족한 정보 확인 질문을 우선한다.</p>
@@ -500,6 +532,9 @@ def write_pdf() -> bool:
         "--headless",
         "--disable-gpu",
         "--no-first-run",
+        f"--user-data-dir={REPORTS / 'edge_pdf_profile'}",
+        "--no-pdf-header-footer",
+        "--print-to-pdf-no-header",
         f"--print-to-pdf={PDF_PATH}",
         uri,
     ]
