@@ -93,7 +93,6 @@ def footer(draw, n):
 
 
 def arrow(draw, start, end, color=CYAN, width=8):
-    draw.line([start, end], fill=color, width=width)
     x1, y1 = start
     x2, y2 = end
     dx, dy = x2 - x1, y2 - y1
@@ -104,6 +103,7 @@ def arrow(draw, start, end, color=CYAN, width=8):
     head_w = max(16, width * 2.4)
     base_x = x2 - ux * head_len
     base_y = y2 - uy * head_len
+    draw.line([start, (base_x, base_y)], fill=color, width=width)
     pts = [
         (x2, y2),
         (base_x + px * head_w / 2, base_y + py * head_w / 2),
