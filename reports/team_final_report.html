@@ -3,13 +3,13 @@
     * { box-sizing: border-box; }
     body { margin: 0; color: #101d33; font-family: "Malgun Gothic", "맑은 고딕", sans-serif; font-size: 11pt; line-height: 1.55; background: #e9eef5; }
     .page { width: 210mm; min-height: 297mm; margin: 0 auto 10px auto; padding: 15mm 15mm 15mm 15mm; background: white; page-break-after: always; position: relative; overflow: visible; }
-    .cover { background: linear-gradient(135deg, #07162d 0%, #0f2748 62%, #0cc6dc 170%); color: white; }
+    .cover { background: white; color: #101d33; border-top: 10px solid #12c6dc; }
     h1 { font-size: 25pt; margin: 0 0 7mm 0; letter-spacing: 0; }
     h2 { font-size: 18pt; margin: 0 0 5mm 0; color: #07162d; }
     h3 { font-size: 13pt; margin: 5mm 0 2mm 0; color: #17385e; }
     p { margin: 0 0 3.2mm 0; }
     .lead { font-size: 13pt; color: #5a6a80; }
-    .cover .lead { color: #d8f8ff; }
+    .cover .lead { color: #61728a; }
     .toc-line { display: flex; justify-content: space-between; border-bottom: 1px dotted #aab8ca; padding: 2.4mm 0; }
     .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; align-items: start; }
     .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; }
@@ -28,15 +28,19 @@
     .analysis-box { background: #f4f8fc; border: 1px solid #d9e5f1; border-radius: 8px; padding: 3.2mm; margin: 3mm 0; }
     .analysis-box b { color: #07162d; }
     .footer { position: absolute; bottom: 7mm; left: 15mm; right: 15mm; color: #93a2b5; font-size: 9pt; display: flex; justify-content: space-between; }
-    .cover-title { margin-top: 55mm; font-size: 30pt; line-height: 1.25; }
-    .cover-box { margin-top: 25mm; border: 1px solid rgba(255,255,255,.35); border-radius: 10px; padding: 8mm; background: rgba(255,255,255,.08); }
+    .cover-title { margin-top: 28mm; font-size: 30pt; line-height: 1.25; }
+    .cover-box { margin-top: 18mm; border: 1px solid #d7e2ef; border-radius: 10px; padding: 8mm; background: #f8fbff; }
+    .cover-icon { width: 42mm; height: 42mm; object-fit: contain; border: 0; border-radius: 14mm; margin: 0 0 14mm auto; display: block; }
     .small { font-size: 9.5pt; color: #61728a; }
+    .report-shots { gap: 3mm; }
+    .report-shots figure { margin: 3mm 0; }
+    .report-shots img { max-height: 58mm; }
     </style></head><body>
         <section class="page cover">
+          <img class="cover-icon" src="team_report_assets/app_icon.png" alt="앱 아이콘">
           <div class="cover-title">강원도 맞춤형<br>응급 및 상시 병원 안내 시스템</div>
           <p class="lead">자연어 증상 분류 모델과 실시간 병원 추천 데이터를 결합한 데이터마이닝 프로젝트</p>
           <div class="cover-box">
-            <p><b>제출 형식</b>: 팀 보고서 / GitHub 코드 제출 / PDF</p>
             <p><b>핵심 키워드</b>: 네이버 지식인 증상 데이터, disease_master, symptom_classifier.pkl, 질환별 문진, 응급도 계산, 병원 추천</p>
             <p><b>GitHub</b>: ironlife827-boop/gangwon-emergency-hospital-guide</p>
           </div>
@@ -168,18 +172,20 @@
         <div class="analysis-box"><b>추천 로직 해석</b><br>추천 점수는 내부 계산용으로만 사용하고 UI에는 표시하지 않는다. 사용자는 점수보다 병원명, 진료과 매칭, 예상 이동시간, 병상 여부, 지도 경로를 확인하는 것이 더 직관적이기 때문이다.</div>
         <div class="footer"><span>강원도 맞춤형 응급 및 상시 병원 안내 시스템</span><span>9</span></div></section><section class="page"><h2>5. 데이터 활용 & 결과 보고</h2>
         <p>최종 시스템은 사용자가 증상을 입력하면 문진, 분석, 병원 추천을 하나의 화면에서 제공한다. UI는 내부 추천 점수보다 사용자가 바로 이해해야 하는 응급도, 의심 질환, 진료과, 병원 정보를 중심으로 구성했다.</p>
+        <div class="grid2 report-shots">
         
     <figure>
-      <img src="presentation_assets/site_home_top.png" alt="그림 8. 사용자 증상 입력 화면">
+      <img src="team_report_assets/service_input_mock.png" alt="그림 8. 사용자 증상 입력 화면">
       <figcaption>그림 8. 사용자 증상 입력 화면</figcaption>
     </figure>
     
         
     <figure>
-      <img src="presentation_assets/site_stroke_result_top.png" alt="그림 9. 분석 결과 및 병원 추천 화면">
+      <img src="team_report_assets/service_result_mock.png" alt="그림 9. 분석 결과 및 병원 추천 화면">
       <figcaption>그림 9. 분석 결과 및 병원 추천 화면</figcaption>
     </figure>
     
+        </div>
         <p>사용 시나리오는 다음과 같다. 사용자가 “갑자기 한쪽 팔에 힘이 빠지고 말이 어눌해졌습니다”라고 입력하면 모델은 신경계·뇌졸중 후보를 예측하고, 뇌졸중 전용 문진을 제시한다. 이후 응급도를 높게 계산하고 응급의학과 또는 관련 응급기관을 추천한다.</p>
         <p>비응급 시나리오에서는 흐름이 다르다. “어제부터 목이 아프고 콧물이 나며 기침이 조금 있고 열은 37.5도”처럼 입력하면 감기 또는 상기도 감염 계열을 우선 의심하고, 심각한 호흡곤란이나 고열 지속 여부를 확인한 뒤 상시 병원을 추천한다. 이를 통해 응급실 과잉 추천을 줄이고 실제 사용자의 병원 선택 문제를 해결하려고 했다.</p>
         <p>최종 결과 화면에는 판단 요약도 함께 제공한다. 이 문장은 “네이버 지식인 증상 데이터 기반 학습 모델이 최종 증상을 분석했고, 응급 문진 데이터는 위험도 계산에 보조적으로 사용했다”는 구조를 사용자에게 설명한다. 즉, 결과가 단순 키워드 매칭이 아니라 데이터 기반 모델과 위험도 보정의 결합임을 보여준다.</p>

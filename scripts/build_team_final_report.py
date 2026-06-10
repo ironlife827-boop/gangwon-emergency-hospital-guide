@@ -134,6 +134,71 @@ def save_system_pipeline_diagram() -> None:
     img.save(ASSETS / "system_pipeline_diagram.png")
 
 
+def save_cover_icon() -> None:
+    src = ROOT / "frontend/public/app-icon.png"
+    if src.exists():
+        icon = Image.open(src).convert("RGBA")
+        icon.thumbnail((360, 360))
+        canvas = Image.new("RGBA", (420, 420), (255, 255, 255, 0))
+        canvas.alpha_composite(icon, ((420 - icon.width) // 2, (420 - icon.height) // 2))
+        canvas.save(ASSETS / "app_icon.png")
+
+
+def save_service_input_mock() -> None:
+    img = Image.new("RGB", (1500, 820), "#07162d")
+    d = ImageDraw.Draw(img)
+    d.text((80, 70), "증상 입력 화면", fill="white", font=font(48, True))
+    d.text((82, 130), "사용자는 자연어 증상과 위치만 입력하면 문진을 시작할 수 있음", fill="#9fc8d4", font=font(25))
+    d.rounded_rectangle((95, 210, 1405, 710), radius=34, fill="#111d34", outline="#2a4263", width=3)
+    d.text((145, 265), "증상 입력", fill="white", font=font(31, True))
+    d.rounded_rectangle((145, 320, 1355, 455), radius=18, fill="#071126", outline="#395171", width=2)
+    d.multiline_text(
+        (180, 350),
+        "갑자기 한쪽 팔에 힘이 빠지고 말이 어눌해졌습니다.",
+        fill="white",
+        font=font(28, True),
+        spacing=6,
+    )
+    d.text((145, 510), "사용자 위치", fill="white", font=font(27, True))
+    d.rounded_rectangle((145, 555, 980, 615), radius=15, fill="#16243b", outline="#3e5878", width=2)
+    d.text((170, 585), "주소나 장소명 검색 예: 강원대학교병원, 춘천시청", fill="#9fb0c7", font=font(22), anchor="lm")
+    d.rounded_rectangle((1010, 555, 1230, 615), radius=15, fill="#071126", outline="#12c6dc", width=2)
+    d.text((1120, 585), "지도 검색", fill="white", font=font(23, True), anchor="mm")
+    d.rounded_rectangle((145, 645, 335, 700), radius=22, fill="#12c6dc")
+    d.text((240, 672), "문진 시작", fill="#07162d", font=font(24, True), anchor="mm")
+    img.save(ASSETS / "service_input_mock.png")
+
+
+def save_service_result_mock() -> None:
+    img = Image.new("RGB", (1500, 900), "#07162d")
+    d = ImageDraw.Draw(img)
+    d.text((80, 60), "분석 결과 화면", fill="white", font=font(48, True))
+    d.text((82, 120), "응급도, 의심 질환, 추천 진료과, 병원 추천을 한 화면에서 제공", fill="#9fc8d4", font=font(25))
+    d.rounded_rectangle((95, 190, 1405, 395), radius=32, fill="#341525", outline="#ff4d5d", width=3)
+    d.text((145, 240), "최종 응급도", fill="white", font=font(24, True))
+    d.text((145, 305), "매우 긴급", fill="white", font=font(50, True))
+    d.rounded_rectangle((1130, 240, 1325, 345), radius=20, fill="#071126")
+    d.text((1228, 285), "위험도", fill="#9fc8d4", font=font(20, True), anchor="mm")
+    d.text((1228, 323), "9 / 10", fill="white", font=font(31, True), anchor="mm")
+    cards = [
+        ("의심 질환", "뇌졸중", "#12c6dc"),
+        ("추천 진료과", "신경과 / 응급의학과", "#25d0a0"),
+        ("증상군", "신경계", "#ffc247"),
+    ]
+    for i, (h, b, c) in enumerate(cards):
+        x = 95 + i * 435
+        d.rounded_rectangle((x, 430, x + 390, 560), radius=24, fill="#0b1429", outline="#253a58", width=2)
+        d.text((x + 35, 470), h, fill="#9fb0c7", font=font(19, True))
+        d.text((x + 35, 520), b, fill=c, font=font(28, True))
+    d.rounded_rectangle((95, 600, 1405, 820), radius=30, fill="#073044", outline="#12c6dc", width=3)
+    d.text((145, 655), "가장 먼저 확인할 병원", fill="#7bf2ff", font=font(24, True))
+    d.text((145, 720), "한림대학교춘천성심병원", fill="white", font=font(38, True))
+    d.text((145, 770), "응급실 보유 · 신경계 진료과 매칭 · 예상 이동시간 8분", fill="#c5e5ee", font=font(24))
+    d.rounded_rectangle((1080, 695, 1300, 765), radius=18, fill="#071126", outline="#2b6eff", width=2)
+    d.text((1190, 730), "카카오맵 경로 보기", fill="white", font=font(22, True), anchor="mm")
+    img.save(ASSETS / "service_result_mock.png")
+
+
 def save_code_snippet_image(filename: str, title: str, code: str) -> None:
     lines = code.strip("\n").splitlines()
     line_h = 34
@@ -153,10 +218,13 @@ def save_code_snippet_image(filename: str, title: str, code: str) -> None:
 
 def generate_assets() -> None:
     ASSETS.mkdir(parents=True, exist_ok=True)
+    save_cover_icon()
     save_chart_data_summary()
     save_model_comparison_chart()
     save_data_role_diagram()
     save_system_pipeline_diagram()
+    save_service_input_mock()
+    save_service_result_mock()
     save_code_snippet_image(
         "code_model_training.png",
         "모델 학습 코드 핵심",
@@ -243,13 +311,13 @@ def build_html() -> str:
     * { box-sizing: border-box; }
     body { margin: 0; color: #101d33; font-family: "Malgun Gothic", "맑은 고딕", sans-serif; font-size: 11pt; line-height: 1.55; background: #e9eef5; }
     .page { width: 210mm; min-height: 297mm; margin: 0 auto 10px auto; padding: 15mm 15mm 15mm 15mm; background: white; page-break-after: always; position: relative; overflow: visible; }
-    .cover { background: linear-gradient(135deg, #07162d 0%, #0f2748 62%, #0cc6dc 170%); color: white; }
+    .cover { background: white; color: #101d33; border-top: 10px solid #12c6dc; }
     h1 { font-size: 25pt; margin: 0 0 7mm 0; letter-spacing: 0; }
     h2 { font-size: 18pt; margin: 0 0 5mm 0; color: #07162d; }
     h3 { font-size: 13pt; margin: 5mm 0 2mm 0; color: #17385e; }
     p { margin: 0 0 3.2mm 0; }
     .lead { font-size: 13pt; color: #5a6a80; }
-    .cover .lead { color: #d8f8ff; }
+    .cover .lead { color: #61728a; }
     .toc-line { display: flex; justify-content: space-between; border-bottom: 1px dotted #aab8ca; padding: 2.4mm 0; }
     .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; align-items: start; }
     .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; }
@@ -268,9 +336,13 @@ def build_html() -> str:
     .analysis-box { background: #f4f8fc; border: 1px solid #d9e5f1; border-radius: 8px; padding: 3.2mm; margin: 3mm 0; }
     .analysis-box b { color: #07162d; }
     .footer { position: absolute; bottom: 7mm; left: 15mm; right: 15mm; color: #93a2b5; font-size: 9pt; display: flex; justify-content: space-between; }
-    .cover-title { margin-top: 55mm; font-size: 30pt; line-height: 1.25; }
-    .cover-box { margin-top: 25mm; border: 1px solid rgba(255,255,255,.35); border-radius: 10px; padding: 8mm; background: rgba(255,255,255,.08); }
+    .cover-title { margin-top: 28mm; font-size: 30pt; line-height: 1.25; }
+    .cover-box { margin-top: 18mm; border: 1px solid #d7e2ef; border-radius: 10px; padding: 8mm; background: #f8fbff; }
+    .cover-icon { width: 42mm; height: 42mm; object-fit: contain; border: 0; border-radius: 14mm; margin: 0 0 14mm auto; display: block; }
     .small { font-size: 9.5pt; color: #61728a; }
+    .report-shots { gap: 3mm; }
+    .report-shots figure { margin: 3mm 0; }
+    .report-shots img { max-height: 58mm; }
     """
 
     pages: list[str] = []
@@ -281,10 +353,10 @@ def build_html() -> str:
     pages.append(
         """
         <section class="page cover">
+          <img class="cover-icon" src="team_report_assets/app_icon.png" alt="앱 아이콘">
           <div class="cover-title">강원도 맞춤형<br>응급 및 상시 병원 안내 시스템</div>
           <p class="lead">자연어 증상 분류 모델과 실시간 병원 추천 데이터를 결합한 데이터마이닝 프로젝트</p>
           <div class="cover-box">
-            <p><b>제출 형식</b>: 팀 보고서 / GitHub 코드 제출 / PDF</p>
             <p><b>핵심 키워드</b>: 네이버 지식인 증상 데이터, disease_master, symptom_classifier.pkl, 질환별 문진, 응급도 계산, 병원 추천</p>
             <p><b>GitHub</b>: ironlife827-boop/gangwon-emergency-hospital-guide</p>
           </div>
@@ -444,8 +516,10 @@ def build_html() -> str:
         "5. 데이터 활용 & 결과 보고",
         f"""
         <p>최종 시스템은 사용자가 증상을 입력하면 문진, 분석, 병원 추천을 하나의 화면에서 제공한다. UI는 내부 추천 점수보다 사용자가 바로 이해해야 하는 응급도, 의심 질환, 진료과, 병원 정보를 중심으로 구성했다.</p>
-        {img_tag('presentation_assets/site_home_top.png', '그림 8. 사용자 증상 입력 화면')}
-        {img_tag('presentation_assets/site_stroke_result_top.png', '그림 9. 분석 결과 및 병원 추천 화면')}
+        <div class="grid2 report-shots">
+        {img_tag('team_report_assets/service_input_mock.png', '그림 8. 사용자 증상 입력 화면')}
+        {img_tag('team_report_assets/service_result_mock.png', '그림 9. 분석 결과 및 병원 추천 화면')}
+        </div>
         <p>사용 시나리오는 다음과 같다. 사용자가 “갑자기 한쪽 팔에 힘이 빠지고 말이 어눌해졌습니다”라고 입력하면 모델은 신경계·뇌졸중 후보를 예측하고, 뇌졸중 전용 문진을 제시한다. 이후 응급도를 높게 계산하고 응급의학과 또는 관련 응급기관을 추천한다.</p>
         <p>비응급 시나리오에서는 흐름이 다르다. “어제부터 목이 아프고 콧물이 나며 기침이 조금 있고 열은 37.5도”처럼 입력하면 감기 또는 상기도 감염 계열을 우선 의심하고, 심각한 호흡곤란이나 고열 지속 여부를 확인한 뒤 상시 병원을 추천한다. 이를 통해 응급실 과잉 추천을 줄이고 실제 사용자의 병원 선택 문제를 해결하려고 했다.</p>
         <p>최종 결과 화면에는 판단 요약도 함께 제공한다. 이 문장은 “네이버 지식인 증상 데이터 기반 학습 모델이 최종 증상을 분석했고, 응급 문진 데이터는 위험도 계산에 보조적으로 사용했다”는 구조를 사용자에게 설명한다. 즉, 결과가 단순 키워드 매칭이 아니라 데이터 기반 모델과 위험도 보정의 결합임을 보여준다.</p>
