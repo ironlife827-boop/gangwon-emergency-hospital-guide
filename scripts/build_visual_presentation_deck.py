@@ -13,6 +13,7 @@ REPORTS = ROOT / "reports"
 ASSETS = REPORTS / "presentation_assets"
 VISUAL_DIR = ASSETS / "visual_slides"
 PPTX_PATH = REPORTS / "gangwon_emergency_hospital_guide_presentation.pptx"
+PPTX_FALLBACK_PATH = REPORTS / "gangwon_emergency_hospital_guide_presentation_visual_v2.pptx"
 NOTES_PATH = REPORTS / "presentation_speaker_notes.md"
 
 W, H = 1920, 1080
@@ -225,6 +226,30 @@ def slide_05():
 def slide_06():
     img = canvas()
     d = ImageDraw.Draw(img)
+    title(d, "사용 데이터 한눈에 보기", "네이버 증상 데이터만 사용한 시스템이 아니다")
+    sources = [
+        ("네이버 지식인", "자연어 증상 표현\n모델 학습 중심", CYAN),
+        ("질환 마스터", "disease_id\n라벨 통합 기준", MINT),
+        ("응급 문진 룰", "risk_score\n응급도 보조", YELLOW),
+        ("병원 기본정보", "1,994개\n상시/응급 병원", BLUE),
+        ("응급 병상 CSV", "24개 응급기관\nfallback 병상", RED),
+        ("질환백과 지식", "증상·진료과\n보강 기준", "#8e6cff"),
+    ]
+    for i, (head, body, color) in enumerate(sources):
+        x = 105 + (i % 3) * 605
+        y = 250 + (i // 3) * 285
+        rounded(d, (x, y, x + 500, y + 220), 34, WHITE, LINE)
+        pill(d, (x + 115, y + 34, x + 385, y + 90), head, color, WHITE if color in [RED, BLUE, "#8e6cff"] else NAVY, 23)
+        draw_text(d, (x + 250, y + 150), body, 31, INK, True, anchor="mm", align="center", spacing=8)
+    rounded(d, (250, 875, 1670, 965), 30, NAVY, NAVY)
+    d.text((960, 920), "역할 분리: 질환 예측 데이터 · 위험도 데이터 · 병원 추천 데이터를 따로 관리", font=f(33, True), fill=WHITE, anchor="mm")
+    footer(d, 6)
+    return img
+
+
+def slide_07():
+    img = canvas()
+    d = ImageDraw.Draw(img)
     title(d, "데이터 이해도", "많이 모은 것보다, 같은 기준으로 연결하는 것이 중요했다")
     metrics = [
         ("3,499", "증상 사례"),
@@ -237,11 +262,11 @@ def slide_06():
         add_metric(d, (95 + i * 365, 310, 385 + i * 365, 510), v, l, MINT if i == 4 else CYAN)
     rounded(d, (245, 720, 1675, 865), 40, NAVY, NAVY)
     d.text((960, 792), "disease_id로 질환 · 질문 · 응급룰 · 병원 추천 데이터를 통합", font=f(43, True), fill=WHITE, anchor="mm")
-    footer(d, 6)
+    footer(d, 7)
     return img
 
 
-def slide_07():
+def slide_08():
     img = canvas()
     d = ImageDraw.Draw(img)
     title(d, "라벨 통합: disease_master", "같은 질환이 다른 이름으로 흔들리는 문제를 줄였다")
@@ -253,11 +278,32 @@ def slide_07():
     d.text((1460, 505), "D_CAR_004\n급성 심근경색", font=f(42, True), fill=NAVY, anchor="mm", align="center")
     arrow(d, (805, 500), (1115, 500), CYAN, 10)
     d.text((960, 820), "모델·문진·응급룰이 같은 질환을 같은 ID로 바라본다", font=f(40, True), fill=NAVY, anchor="mm")
-    footer(d, 7)
+    footer(d, 8)
     return img
 
 
-def slide_08():
+def slide_09():
+    img = canvas()
+    d = ImageDraw.Draw(img)
+    title(d, "서울아산병원 질환백과 활용", "의료 지식은 학습 원문이 아니라, 질환 체계 보강 기준으로 사용")
+    shadowed_card(img, (140, 285, 620, 710), 38)
+    shadowed_card(img, (720, 285, 1200, 710), 38, "#eafcff", CYAN)
+    shadowed_card(img, (1300, 285, 1780, 710), 38)
+    d.text((380, 360), "질환백과", font=f(40, True), fill=NAVY, anchor="mm")
+    d.text((380, 515), "질환명\n증상\n관련 진료과", font=f(34, True), fill=MUTED, anchor="mm", align="center")
+    d.text((960, 360), "활용 방식", font=f(40, True), fill=NAVY, anchor="mm")
+    d.text((960, 515), "disease_master\n별칭·증상·진료과\n보강 기준", font=f(32, True), fill=BLUE, anchor="mm", align="center")
+    d.text((1540, 360), "주의점", font=f(40, True), fill=NAVY, anchor="mm")
+    d.text((1540, 515), "전문 원문을\n그대로 학습시키지 않음", font=f(32, True), fill=RED, anchor="mm", align="center")
+    arrow(d, (635, 500), (705, 500), CYAN, 8)
+    arrow(d, (1215, 500), (1285, 500), CYAN, 8)
+    rounded(d, (245, 820, 1675, 930), 36, NAVY, NAVY)
+    d.text((960, 875), "목적: 모델이 사용자 표현을 다루되, 질환명과 진료과 체계는 의료 지식으로 보정", font=f(34, True), fill=WHITE, anchor="mm")
+    footer(d, 9)
+    return img
+
+
+def slide_10():
     img = canvas()
     d = ImageDraw.Draw(img)
     title(d, "모델 설계", "자연어 증상을 의심 질환 후보로 변환")
@@ -273,11 +319,11 @@ def slide_08():
     arrow(d, (540, 480), (740, 480), CYAN, 8)
     arrow(d, (1180, 480), (1380, 480), CYAN, 8)
     d.text((960, 820), "모델 비교: baseline · Word TF-IDF · Char TF-IDF · Linear SVC", font=f(34, True), fill=NAVY, anchor="mm")
-    footer(d, 8)
+    footer(d, 10)
     return img
 
 
-def slide_09():
+def slide_11():
     img = canvas()
     d = ImageDraw.Draw(img)
     title(d, "추가 문진", "질문을 많이 하는 것이 아니라, 필요한 질문만 고른다")
@@ -287,11 +333,11 @@ def slide_09():
     for i, (txt, color) in enumerate(components):
         pill(d, (305 + i * 360, 670, 585 + i * 360, 735), txt, color, NAVY if color != RED else WHITE, 30)
     d.text((960, 875), "질문은 새로 생성하지 않고 disease_question_map 후보 중에서 랭킹", font=f(35, True), fill=NAVY, anchor="mm")
-    footer(d, 9)
+    footer(d, 11)
     return img
 
 
-def slide_10():
+def slide_12():
     img = canvas()
     d = ImageDraw.Draw(img)
     title(d, "응급도와 병원 추천", "응급 데이터는 질환 판단이 아니라 위험도 계산에 사용")
@@ -307,11 +353,32 @@ def slide_10():
         d.text((x + 210, 535), sub, font=f(34, True), fill=INK, anchor="mm", align="center")
     rounded(d, (310, 790, 1610, 895), 34, "#eafcff", CYAN)
     d.text((960, 842), "가용 병상 0개 병원은 거리만 가까워도 우선순위 하락", font=f(36, True), fill=NAVY, anchor="mm")
-    footer(d, 10)
+    footer(d, 12)
     return img
 
 
-def slide_11():
+def slide_13():
+    img = canvas()
+    d = ImageDraw.Draw(img)
+    title(d, "사용한 API", "외부 API는 판단 보조와 실시간성 확보에 사용")
+    apis = [
+        ("Kakao Local API", "주소/장소 검색\n좌표 설정", CYAN),
+        ("Kakao Mobility API", "자동차 경로\n시간·거리 보정", MINT),
+        ("공공데이터 EGEN API", "응급실 가용 병상\n실시간 조회", RED),
+        ("FastAPI Backend", "문진·분석·추천\n서비스 API", BLUE),
+    ]
+    for i, (head, body, color) in enumerate(apis):
+        x = 135 + i * 445
+        rounded(d, (x, 300, x + 360, 650), 38, WHITE, LINE)
+        pill(d, (x + 38, 355, x + 322, 415), head, color, WHITE if color in [RED, BLUE] else NAVY, 22)
+        d.text((x + 180, 535), body, font=f(31, True), fill=INK, anchor="mm", align="center")
+    rounded(d, (250, 800, 1670, 920), 36, NAVY, NAVY)
+    d.text((960, 860), "API 실패 시 정적 CSV 또는 ETA 모델로 fallback", font=f(42, True), fill=WHITE, anchor="mm")
+    footer(d, 13)
+    return img
+
+
+def slide_14():
     img = canvas()
     d = ImageDraw.Draw(img)
     title(d, "실제 서비스 화면", "입력 화면과 결과 화면을 한 흐름으로 확인")
@@ -321,11 +388,11 @@ def slide_11():
     paste_fit(img, ASSETS / "site_stroke_result_top.png", (1040, 265, 1805, 850))
     pill(d, (220, 885, 775, 945), "증상 입력 · 위치 설정", CYAN, NAVY, 28)
     pill(d, (1160, 885, 1695, 945), "응급도 · 질환 · 병원 추천", MINT, NAVY, 28)
-    footer(d, 11)
+    footer(d, 14)
     return img
 
 
-def slide_12():
+def slide_15():
     img = canvas()
     d = ImageDraw.Draw(img)
     title(d, "실행 검증", "정적 설명이 아니라 실제 실행으로 확인했다")
@@ -336,11 +403,11 @@ def slide_12():
     checks = "모델 로드 · disease_master · mapped CSV · backend 실행 · smoke test · /questions · /analyze"
     rounded(d, (210, 760, 1710, 875), 36, NAVY, NAVY)
     d.text((960, 817), checks, font=f(31, True), fill=WHITE, anchor="mm")
-    footer(d, 12)
+    footer(d, 15)
     return img
 
 
-def slide_13():
+def slide_16():
     img = canvas(NAVY)
     d = ImageDraw.Draw(img)
     d.ellipse((-220, 650, 680, 1450), fill="#102b54")
@@ -353,7 +420,7 @@ def slide_13():
         y = 390 + i * 72
         d.ellipse((1212, y - 12, 1236, y + 12), fill=CYAN)
         d.text((1260, y), b, font=f(34, True), fill="#d7f7ff", anchor="lm")
-    footer(d, 13)
+    footer(d, 16)
     return img
 
 
@@ -371,6 +438,9 @@ SLIDES = [
     slide_11,
     slide_12,
     slide_13,
+    slide_14,
+    slide_15,
+    slide_16,
 ]
 
 NOTES = [
@@ -379,11 +449,14 @@ NOTES = [
     "목표는 모델 예측, 최소 문진, 응급도 판단, 병원 추천 네 가지입니다.",
     "시스템은 입력부터 병원 추천까지 하나의 파이프라인으로 연결됩니다.",
     "데이터는 수집, 정제, 탐색, 분석, 활용 단계로 구성했습니다.",
+    "네이버 증상 데이터뿐 아니라 질환 마스터, 응급 문진 룰, 병원 기본정보, 병상 데이터, 질환백과 지식을 역할별로 사용했습니다.",
     "현재 데이터는 3,499건 증상 사례와 149개 질환 마스터로 통합되어 있습니다.",
     "질환명 흔들림을 줄이기 위해 disease_id를 기준으로 통합했습니다.",
+    "서울아산병원 질환백과 같은 의료 지식은 원문을 그대로 학습시키기보다 질환명, 증상, 진료과 체계를 보강하는 기준으로 활용했습니다.",
     "모델은 자연어 증상 문장을 받아 증상군, 진료과, 질환 후보 TOP3를 예측합니다.",
     "추가 문진은 고정 질문이 아니라 필요한 질문만 랭킹해서 선택합니다.",
     "응급도는 red flag와 risk score로 계산하고, 병원 추천은 병상과 ETA까지 반영합니다.",
+    "카카오 위치/길찾기 API와 공공 응급 병상 API를 사용하고, 실패하면 정적 데이터와 ETA 모델로 fallback합니다.",
     "실제 화면에서는 증상 입력부터 응급도와 병원 추천까지 확인할 수 있습니다.",
     "최종 검증은 21개 항목 PASS, 주요 API와 배포 사이트까지 확인했습니다.",
     "이 시스템은 진단기가 아니라 응급도와 병원 선택을 돕는 데이터 기반 안내 시스템입니다.",
@@ -409,7 +482,10 @@ def build_ppt(paths):
     for path in paths:
         slide = prs.slides.add_slide(blank)
         slide.shapes.add_picture(str(path), 0, 0, width=prs.slide_width, height=prs.slide_height)
-    prs.save(PPTX_PATH)
+    try:
+        prs.save(PPTX_PATH)
+    except PermissionError:
+        prs.save(PPTX_FALLBACK_PATH)
 
 
 def build_notes():
@@ -427,6 +503,8 @@ def main():
     build_ppt(paths)
     build_notes()
     print(PPTX_PATH)
+    if PPTX_FALLBACK_PATH.exists():
+        print(PPTX_FALLBACK_PATH)
     print(VISUAL_DIR)
 
 
