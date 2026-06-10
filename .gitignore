@@ -2,3 +2,9 @@ __pycache__/
 *.pyc
 .venv/
 data/processed/*.before_expansion.csv
+
+# Local-only presentation/report/archive materials
+reports/
+docs/
+archive/
+scripts/
