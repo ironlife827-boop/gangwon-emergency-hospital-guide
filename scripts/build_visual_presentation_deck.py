@@ -272,8 +272,8 @@ def slide_03_region_need():
     for i, (head, body) in enumerate(items):
         y = 285 + i * 145
         rounded(d, (930, y, 1765, y + 112), 28, WHITE, LINE)
-        d.text((985, y + 38), head, font=f(31, True), fill=NAVY)
-        d.text((985, y + 82), body, font=f(23), fill=MUTED)
+        d.text((985, y + 43), head, font=f(31, True), fill=NAVY, anchor="lm")
+        d.text((985, y + 78), body, font=f(23), fill=MUTED, anchor="lm")
     rounded(d, (910, 850, 1775, 935), 28, NAVY, NAVY)
     d.text((1342, 892), "그래서: 증상 판단 + 병원 필터링 + ETA 예측이 함께 필요", font=f(31, True), fill=WHITE, anchor="mm")
     footer(d, 4)
