@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from pathlib import Path
 from textwrap import wrap
 
@@ -14,6 +15,7 @@ ASSETS = REPORTS / "presentation_assets"
 VISUAL_DIR = ASSETS / "visual_slides"
 PPTX_PATH = REPORTS / "gangwon_emergency_hospital_guide_presentation.pptx"
 PPTX_FALLBACK_PATH = REPORTS / "gangwon_emergency_hospital_guide_presentation_visual_v2.pptx"
+PPTX_UNLOCKED_PATH = REPORTS / "gangwon_emergency_hospital_guide_presentation_ai_final.pptx"
 NOTES_PATH = REPORTS / "presentation_speaker_notes.md"
 
 W, H = 1920, 1080
@@ -94,10 +96,19 @@ def arrow(draw, start, end, color=CYAN, width=8):
     draw.line([start, end], fill=color, width=width)
     x1, y1 = start
     x2, y2 = end
-    if x2 >= x1:
-        pts = [(x2, y2), (x2 - 28, y2 - 16), (x2 - 28, y2 + 16)]
-    else:
-        pts = [(x2, y2), (x2 + 28, y2 - 16), (x2 + 28, y2 + 16)]
+    dx, dy = x2 - x1, y2 - y1
+    length = math.hypot(dx, dy) or 1
+    ux, uy = dx / length, dy / length
+    px, py = -uy, ux
+    head_len = max(24, width * 4)
+    head_w = max(16, width * 2.4)
+    base_x = x2 - ux * head_len
+    base_y = y2 - uy * head_len
+    pts = [
+        (x2, y2),
+        (base_x + px * head_w / 2, base_y + py * head_w / 2),
+        (base_x - px * head_w / 2, base_y - py * head_w / 2),
+    ]
     draw.polygon(pts, fill=color)
 
 
@@ -130,15 +141,16 @@ def draw_gangwon_map(draw, box):
         (x1 + 590, y1 + 470), (x1 + 405, y1 + 620), (x1 + 230, y1 + 560),
         (x1 + 120, y1 + 410), (x1 + 60, y1 + 210),
     ]
-    draw.polygon(pts, fill="#eafcff", outline=CYAN)
-    draw.line(pts + [pts[0]], fill=CYAN, width=5)
+    draw.polygon(pts, fill="#eafcff")
+    draw.line(pts + [pts[0]], fill=CYAN, width=5, joint="curve")
     vulnerable = [
-        (x1 + 145, y1 + 170, x1 + 335, y1 + 345),
-        (x1 + 330, y1 + 285, x1 + 545, y1 + 505),
-        (x1 + 95, y1 + 390, x1 + 290, y1 + 555),
+        [(x1 + 155, y1 + 170), (x1 + 335, y1 + 175), (x1 + 355, y1 + 335), (x1 + 170, y1 + 355)],
+        [(x1 + 365, y1 + 310), (x1 + 555, y1 + 295), (x1 + 560, y1 + 500), (x1 + 360, y1 + 485)],
+        [(x1 + 115, y1 + 405), (x1 + 300, y1 + 420), (x1 + 275, y1 + 570), (x1 + 135, y1 + 545)],
     ]
-    for z in vulnerable:
-        draw.rounded_rectangle(z, radius=40, fill="#ffd76b66", outline="#ffc247", width=2)
+    for zone in vulnerable:
+        draw.polygon(zone, fill="#ffd76b")
+        draw.line(zone + [zone[0]], fill="#e8a900", width=3, joint="curve")
     sites = [
         (37.88, 127.74), (37.75, 128.90), (38.20, 128.57), (37.34, 127.95),
         (37.52, 129.11), (37.16, 128.98), (38.11, 127.99), (37.69, 127.89),
@@ -149,10 +161,12 @@ def draw_gangwon_map(draw, box):
     for lat, lon in sites:
         sx = x1 + 110 + (lon - min_lon) / (max_lon - min_lon) * 500
         sy = y1 + 560 - (lat - min_lat) / (max_lat - min_lat) * 480
-        draw.rounded_rectangle((sx - 13, sy - 13, sx + 13, sy + 13), radius=6, fill=RED, outline=WHITE, width=3)
-    draw.text((x1 + 350, y2 - 28), "응급의료기관", font=f(24, True), fill=RED, anchor="mm")
-    draw.rounded_rectangle((x1 + 470, y2 - 52, x1 + 515, y2 - 18), radius=14, fill="#ffd76b66", outline=YELLOW, width=2)
-    draw.text((x1 + 625, y2 - 35), "의료취약권역", font=f(23, True), fill=INK, anchor="mm")
+        draw.ellipse((sx - 12, sy - 12, sx + 12, sy + 12), fill=RED, outline=WHITE, width=4)
+    draw.rounded_rectangle((x1 + 245, y2 - 58, x1 + 680, y2 - 10), radius=22, fill=WHITE, outline=LINE, width=2)
+    draw.ellipse((x1 + 272, y2 - 43, x1 + 294, y2 - 21), fill=RED, outline=WHITE, width=2)
+    draw.text((x1 + 312, y2 - 32), "응급의료기관", font=f(22, True), fill=RED, anchor="lm")
+    draw.rectangle((x1 + 500, y2 - 43, x1 + 530, y2 - 21), fill="#ffd76b", outline="#e8a900", width=2)
+    draw.text((x1 + 545, y2 - 32), "의료취약권역", font=f(22, True), fill=INK, anchor="lm")
 
 
 def draw_bar_chart(draw, origin, size, rows, highlight_label):
@@ -693,7 +707,10 @@ def build_ppt(paths):
     except PermissionError:
         pass
     if not saved_primary or PPTX_FALLBACK_PATH.exists():
-        prs.save(PPTX_FALLBACK_PATH)
+        try:
+            prs.save(PPTX_FALLBACK_PATH)
+        except PermissionError:
+            prs.save(PPTX_UNLOCKED_PATH)
 
 
 def build_notes():
@@ -713,6 +730,8 @@ def main():
     print(PPTX_PATH)
     if PPTX_FALLBACK_PATH.exists():
         print(PPTX_FALLBACK_PATH)
+    if PPTX_UNLOCKED_PATH.exists():
+        print(PPTX_UNLOCKED_PATH)
     print(VISUAL_DIR)
 
 
